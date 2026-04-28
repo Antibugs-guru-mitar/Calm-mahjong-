@@ -25,12 +25,17 @@
 
         <!-- CONTROLS -->
         <div class="controls">
-            <button onclick="startGame()">Start Game</button>
+            <button onclick="startGame()">Start</button>
             <button onclick="restartGame()">Restart</button>
+
+            <!-- 🔥 PHASE 5 NEW FEATURES -->
+            <button onclick="hint()">Hint</button>
+            <button onclick="shuffleBoard()">Shuffle</button>
+            <button onclick="resetProgress()">Reset</button>
         </div>
 
-        <!-- 🏆 WIN / LEVEL SCREEN (PHASE 4 IMPROVED) -->
-        <div id="win-message" style="display:none;"></div>
+        <!-- WIN SCREEN (CLEAN - JS CONTROLLED ONLY) -->
+        <div id="win-message"></div>
 
     </div>
 

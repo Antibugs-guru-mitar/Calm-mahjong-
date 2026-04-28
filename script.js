@@ -3,13 +3,20 @@ const scoreText = document.getElementById("score");
 const winMessage = document.getElementById("win-message");
 const levelText = document.getElementById("level");
 
-// 💾 SAFE LOAD (FIXED)
+// 💾 SAFE LOAD
 let level = parseInt(localStorage.getItem("level")) || 1;
 let score = parseInt(localStorage.getItem("score")) || 0;
+let bestScore = parseInt(localStorage.getItem("bestScore")) || 0;
+
+// 🎮 GAME STATE (PHASE 6 ADD)
+let gameState = "playing"; // playing | win | menu
 
 let firstTile = null;
 let matchedTiles = 0;
 let totalTiles = 0;
+
+// 🏆 ACHIEVEMENTS (PHASE 6)
+let achievements = JSON.parse(localStorage.getItem("achievements")) || [];
 
 // 🧩 Base tiles
 const base = ["🍎","🍌","🍇","🍒","🍉","🍍","🥝","🍓"];
@@ -32,7 +39,7 @@ function getLevelTiles(level) {
     return tiles;
 }
 
-// 🎮 LEVEL START ANIMATION (FIXED SAFE)
+// 🎮 LEVEL START ANIMATION
 function showLevelStart() {
     if (winMessage) {
         winMessage.style.display = "block";
@@ -47,12 +54,32 @@ function showLevelStart() {
     }, 700);
 }
 
+// 🔊 SOUND SYSTEM (PHASE 6 HOOK)
+function playSound(type) {
+    // future: click.mp3 / win.mp3
+    console.log("Sound:", type);
+}
+
+// 🏆 ACHIEVEMENT CHECK
+function checkAchievements() {
+    if (score >= 100 && !achievements.includes("score100")) {
+        achievements.push("score100");
+    }
+
+    if (level >= 5 && !achievements.includes("level5")) {
+        achievements.push("level5");
+    }
+
+    localStorage.setItem("achievements", JSON.stringify(achievements));
+}
+
 // Start Game
 function startGame() {
     board.innerHTML = "";
 
     matchedTiles = 0;
     firstTile = null;
+    gameState = "playing";
 
     scoreText.innerText = score;
 
@@ -82,7 +109,10 @@ function startGame() {
 // Tile logic
 function handleTileClick(tile) {
 
+    if (gameState !== "playing") return;
     if (tile.classList.contains("matched")) return;
+
+    playSound("click");
 
     if (!firstTile) {
         firstTile = tile;
@@ -102,17 +132,22 @@ function handleTileClick(tile) {
         score += 10;
         matchedTiles += 2;
 
-        // 💾 SAVE SCORE (FIXED)
         localStorage.setItem("score", score);
 
         scoreText.innerText = score;
 
-        // 🏆 WIN SCREEN
+        checkAchievements();
+
         if (matchedTiles === totalTiles) {
+
+            gameState = "win";
+            playSound("win");
+
             setTimeout(() => {
 
                 if (winMessage) {
                     winMessage.style.display = "block";
+
                     winMessage.innerHTML = `
                         <h2>🎉 Level ${level} Complete!</h2>
                         <p>Great Job!</p>
@@ -131,7 +166,7 @@ function handleTileClick(tile) {
     firstTile = null;
 }
 
-// 🔥 NEXT LEVEL (FIXED SYNC)
+// 🔥 NEXT LEVEL
 function nextLevel() {
     level++;
 
@@ -141,7 +176,7 @@ function nextLevel() {
     startGame();
 }
 
-// 🔁 RESTART SAME LEVEL
+// 🔁 RESTART
 function restartGame() {
     startGame();
 }
@@ -160,7 +195,7 @@ function hint() {
     }
 }
 
-// 🔀 SHUFFLE (SAFE VERSION)
+// 🔀 SHUFFLE
 function shuffleBoard() {
     let tiles = Array.from(board.children);
     board.innerHTML = "";
@@ -170,13 +205,13 @@ function shuffleBoard() {
     tiles.forEach(tile => board.appendChild(tile));
 }
 
-// 🔄 RESET FULL PROGRESS
+// 🔄 RESET PROGRESS
 function resetProgress() {
-    localStorage.removeItem("level");
-    localStorage.removeItem("score");
+    localStorage.clear();
 
     level = 1;
     score = 0;
+    achievements = [];
 
     startGame();
 }

@@ -14,16 +14,20 @@
 
         <h1>Calm Mahjong</h1>
 
-        <!-- INFO PANEL -->
+        <!-- 🧠 PHASE 6 ADD: GAME STATUS BAR -->
         <div class="info">
             <p>Level: <span id="level">1</span></p>
             <p>Score: <span id="score">0</span></p>
+            <p>Best: <span id="best-score">0</span></p>
         </div>
 
-        <!-- GAME BOARD -->
+        <!-- 🎮 GAME BOARD -->
         <div id="game-board" class="board"></div>
 
-        <!-- CONTROLS (PHASE 5 CLEAN ORDER) -->
+        <!-- 🧠 PHASE 6 ADD: ACHIEVEMENT DISPLAY -->
+        <div id="achievement-bar" style="margin-top:10px; font-size:14px; color:green;"></div>
+
+        <!-- CONTROLS (UNCHANGED + SAFE ADD) -->
         <div class="controls">
 
             <button onclick="startGame()">Start Game</button>
@@ -35,8 +39,11 @@
 
         </div>
 
-        <!-- WIN SCREEN (SAFE + CLEAN FOR JS CONTROL) -->
+        <!-- 🏆 WIN SCREEN (PHASE 6 READY) -->
         <div id="win-message" style="display:none;"></div>
+
+        <!-- 🎮 PHASE 6 ADD: MENU OVERLAY (FUTURE READY) -->
+        <div id="menu-screen" style="display:none;"></div>
 
     </div>
 

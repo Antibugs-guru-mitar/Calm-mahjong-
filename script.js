@@ -18,11 +18,10 @@ function shuffle(array) {
     return array.sort(() => Math.random() - 0.5);
 }
 
-// 🔥 FIXED LEVEL TILE GENERATOR
+// 🔥 LEVEL TILE GENERATOR (STABLE)
 function getLevelTiles(level) {
     let tiles = [];
 
-    // pairs increase with level
     let pairs = 6 + (level - 1) * 2;
 
     for (let i = 0; i < pairs; i++) {
@@ -33,7 +32,7 @@ function getLevelTiles(level) {
     return tiles;
 }
 
-// Start / Reset Game (FULL FIXED)
+// Start / Reset Game
 function startGame() {
     board.innerHTML = "";
 
@@ -57,6 +56,9 @@ function startGame() {
         tile.classList.add("tile");
         tile.innerText = symbol;
 
+        // 🔥 SAFE RESET BACKGROUND (FIX)
+        tile.style.background = "#f0f0f0";
+
         tile.addEventListener("click", () => handleTileClick(tile));
 
         board.appendChild(tile);
@@ -65,45 +67,53 @@ function startGame() {
 
 // Tile Click Logic
 function handleTileClick(tile) {
+
+    // 🔥 EXTRA SAFETY CHECK (FIX)
     if (tile.classList.contains("matched")) return;
 
     if (!firstTile) {
         firstTile = tile;
         tile.style.background = "#d1e7ff";
-    } else {
-        if (firstTile.innerText === tile.innerText && firstTile !== tile) {
+        return;
+    }
 
-            firstTile.classList.add("matched");
-            tile.classList.add("matched");
+    if (firstTile.innerText === tile.innerText && firstTile !== tile) {
 
-            firstTile.style.visibility = "hidden";
-            tile.style.visibility = "hidden";
+        firstTile.classList.add("matched");
+        tile.classList.add("matched");
 
-            score += 10;
-            matchedTiles += 2;
+        firstTile.style.visibility = "hidden";
+        tile.style.visibility = "hidden";
 
-            scoreText.innerText = score;
+        score += 10;
+        matchedTiles += 2;
 
-            // WIN CHECK 🔥
-            if (matchedTiles === totalTiles) {
+        scoreText.innerText = score;
+
+        // 🏆 WIN CHECK + AUTO NEXT LEVEL
+        if (matchedTiles === totalTiles) {
+            setTimeout(() => {
+                if (winMessage) {
+                    winMessage.style.display = "block";
+                }
+
                 setTimeout(() => {
-                    if (winMessage) {
-                        winMessage.style.display = "block";
-                    }
-                }, 300);
-            }
+                    level++;
+                    startGame();
+                }, 1200);
 
-        } else {
-            firstTile.style.background = "#f0f0f0";
+            }, 300);
         }
 
-        firstTile = null;
+    } else {
+        firstTile.style.background = "#f0f0f0";
     }
+
+    firstTile = null;
 }
 
-// 🏆 NEXT LEVEL SYSTEM
+// 🔁 RESTART (same level)
 function restartGame() {
-    level++;
     startGame();
 }
 

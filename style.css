@@ -28,15 +28,17 @@ body {
 h1 {
     margin-bottom: 10px;
     color: #333;
+    letter-spacing: 1px;
 }
 
-/* Info (Level + Score) */
+/* Info (Level + Score + Best) */
 .info {
     margin-bottom: 15px;
-    font-size: 18px;
+    font-size: 16px;
     color: #444;
     display: flex;
     justify-content: space-around;
+    font-weight: bold;
 }
 
 /* Board */
@@ -48,35 +50,37 @@ h1 {
     min-height: 300px;
 }
 
-/* Tiles (PHASE 4 POLISH) */
+/* Tiles (PHASE 6 POLISH UPGRADE 🔥) */
 .tile {
     background: #f0f0f0;
-    border-radius: 8px;
-    height: 45px;
+    border-radius: 10px;
+    height: 50px;
     display: flex;
     justify-content: center;
     align-items: center;
     cursor: pointer;
-    font-size: 20px;
+    font-size: 22px;
     user-select: none;
 
     transition: all 0.2s ease;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
 
-/* Hover */
+/* Hover effect */
 .tile:hover {
     transform: scale(1.08);
-    background: #e0e0e0;
+    background: #e8e8e8;
 }
 
-/* Click */
+/* Click effect */
 .tile:active {
     transform: scale(0.92);
 }
 
-/* Matched effect */
+/* Matched tiles */
 .tile.matched {
-    opacity: 0.6;
+    opacity: 0.4;
+    transform: scale(0.95);
 }
 
 /* Buttons */
@@ -89,28 +93,31 @@ h1 {
     background: #4a90e2;
     color: white;
     transition: 0.3s;
+    font-weight: bold;
 }
 
 .controls button:hover {
     background: #357ab7;
+    transform: scale(1.05);
 }
 
-/* WIN SCREEN (PHASE 4 IMPROVED) */
+/* WIN SCREEN (PHASE 6 UPGRADED 🔥) */
 #win-message {
     margin-top: 20px;
     padding: 20px;
     background: linear-gradient(135deg, #e6ffe6, #ffffff);
     border-radius: 12px;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
     animation: pop 0.3s ease;
 }
 
+/* Win text */
 #win-message h2 {
-    color: green;
+    color: #2e7d32;
     margin-bottom: 10px;
 }
 
-/* animation */
+/* POP ANIMATION */
 @keyframes pop {
     from {
         transform: scale(0.7);
@@ -119,5 +126,30 @@ h1 {
     to {
         transform: scale(1);
         opacity: 1;
+    }
+}
+
+/* 🧠 PHASE 6 ADD: Achievement bar */
+#achievement-bar {
+    font-size: 14px;
+    color: #2e7d32;
+    margin-top: 5px;
+    font-weight: bold;
+}
+
+/* 📱 MOBILE OPTIMIZATION (IMPORTANT) */
+@media (max-width: 500px) {
+    .board {
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    .tile {
+        height: 45px;
+        font-size: 20px;
+    }
+
+    .controls button {
+        padding: 8px 10px;
+        font-size: 12px;
     }
 }

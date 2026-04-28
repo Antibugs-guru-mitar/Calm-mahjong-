@@ -10,10 +10,10 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    min-height: 100vh;
 }
 
-/* Main container */
+/* Game container */
 .game-container {
     text-align: center;
     background: #ffffff;
@@ -37,7 +37,7 @@ h1 {
     color: #444;
 }
 
-/* Game board */
+/* Board */
 .board {
     display: grid;
     grid-template-columns: repeat(6, 1fr);
@@ -46,21 +46,29 @@ h1 {
     min-height: 300px;
 }
 
-/* Tiles (future JS use karega) */
+/* Tiles */
 .tile {
     background: #f0f0f0;
     border-radius: 8px;
-    height: 40px;
+    height: 45px;
     display: flex;
     justify-content: center;
     align-items: center;
     cursor: pointer;
-    transition: 0.2s;
+    transition: 0.2s ease;
+    font-size: 20px;
+    user-select: none;
 }
 
+/* Hover effect */
 .tile:hover {
-    transform: scale(1.05);
+    transform: scale(1.08);
     background: #e0e0e0;
+}
+
+/* Click effect */
+.tile:active {
+    transform: scale(0.95);
 }
 
 /* Buttons */
@@ -77,4 +85,25 @@ h1 {
 
 .controls button:hover {
     background: #357ab7;
+}
+
+/* WIN SCREEN 🔥 */
+#win-message {
+    margin-top: 20px;
+    padding: 20px;
+    background: linear-gradient(135deg, #e6ffe6, #ffffff);
+    border-radius: 12px;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    animation: pop 0.4s ease;
+}
+
+#win-message h2 {
+    color: green;
+    margin-bottom: 10px;
+}
+
+/* animation */
+@keyframes pop {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
 }

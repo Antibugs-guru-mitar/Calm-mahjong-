@@ -2,6 +2,9 @@ const board = document.getElementById("game-board");
 const scoreText = document.getElementById("score");
 const winMessage = document.getElementById("win-message");
 
+// 🔥 LEVEL UI LINK (IMPORTANT FIX)
+const levelText = document.getElementById("level");
+
 let score = 0;
 let firstTile = null;
 let matchedTiles = 0;
@@ -18,7 +21,7 @@ function shuffle(array) {
     return array.sort(() => Math.random() - 0.5);
 }
 
-// 🔥 LEVEL TILE GENERATOR (STABLE)
+// 🔥 LEVEL TILE GENERATOR
 function getLevelTiles(level) {
     let tiles = [];
 
@@ -42,6 +45,11 @@ function startGame() {
 
     scoreText.innerText = score;
 
+    // 🔥 UPDATE LEVEL UI
+    if (levelText) {
+        levelText.innerText = level;
+    }
+
     if (winMessage) {
         winMessage.style.display = "none";
     }
@@ -56,7 +64,6 @@ function startGame() {
         tile.classList.add("tile");
         tile.innerText = symbol;
 
-        // 🔥 SAFE RESET BACKGROUND (FIX)
         tile.style.background = "#f0f0f0";
 
         tile.addEventListener("click", () => handleTileClick(tile));
@@ -68,7 +75,6 @@ function startGame() {
 // Tile Click Logic
 function handleTileClick(tile) {
 
-    // 🔥 EXTRA SAFETY CHECK (FIX)
     if (tile.classList.contains("matched")) return;
 
     if (!firstTile) {
@@ -93,6 +99,7 @@ function handleTileClick(tile) {
         // 🏆 WIN CHECK + AUTO NEXT LEVEL
         if (matchedTiles === totalTiles) {
             setTimeout(() => {
+
                 if (winMessage) {
                     winMessage.style.display = "block";
                 }

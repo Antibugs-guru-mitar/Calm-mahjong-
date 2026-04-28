@@ -3,12 +3,9 @@ const scoreText = document.getElementById("score");
 const winMessage = document.getElementById("win-message");
 const levelText = document.getElementById("level");
 
-// 💾 LOAD SAVED DATA (PHASE 5)
-let savedLevel = localStorage.getItem("level");
-let savedScore = localStorage.getItem("score");
-
-let level = savedLevel ? parseInt(savedLevel) : 1;
-let score = savedScore ? parseInt(savedScore) : 0;
+// 💾 SAFE LOAD (FIXED)
+let level = parseInt(localStorage.getItem("level")) || 1;
+let score = parseInt(localStorage.getItem("score")) || 0;
 
 let firstTile = null;
 let matchedTiles = 0;
@@ -35,7 +32,7 @@ function getLevelTiles(level) {
     return tiles;
 }
 
-// 🎮 LEVEL START ANIMATION
+// 🎮 LEVEL START ANIMATION (FIXED SAFE)
 function showLevelStart() {
     if (winMessage) {
         winMessage.style.display = "block";
@@ -47,7 +44,7 @@ function showLevelStart() {
 
     setTimeout(() => {
         if (winMessage) winMessage.style.display = "none";
-    }, 800);
+    }, 700);
 }
 
 // Start Game
@@ -105,12 +102,12 @@ function handleTileClick(tile) {
         score += 10;
         matchedTiles += 2;
 
-        // 💾 SAVE SCORE
+        // 💾 SAVE SCORE (FIXED)
         localStorage.setItem("score", score);
 
         scoreText.innerText = score;
 
-        // 🏆 WIN + NEXT LEVEL
+        // 🏆 WIN SCREEN
         if (matchedTiles === totalTiles) {
             setTimeout(() => {
 
@@ -134,11 +131,12 @@ function handleTileClick(tile) {
     firstTile = null;
 }
 
-// 🔥 NEXT LEVEL (PHASE 5 CORE FIX)
+// 🔥 NEXT LEVEL (FIXED SYNC)
 function nextLevel() {
     level++;
 
     localStorage.setItem("level", level);
+    localStorage.setItem("score", score);
 
     startGame();
 }
@@ -148,7 +146,7 @@ function restartGame() {
     startGame();
 }
 
-// 💡 HINT SYSTEM
+// 💡 HINT
 function hint() {
     let tiles = document.querySelectorAll(".tile:not(.matched)");
 
@@ -158,11 +156,11 @@ function hint() {
 
         setTimeout(() => {
             randomTile.style.background = "#f0f0f0";
-        }, 800);
+        }, 700);
     }
 }
 
-// 🔀 SHUFFLE BOARD
+// 🔀 SHUFFLE (SAFE VERSION)
 function shuffleBoard() {
     let tiles = Array.from(board.children);
     board.innerHTML = "";
@@ -172,7 +170,7 @@ function shuffleBoard() {
     tiles.forEach(tile => board.appendChild(tile));
 }
 
-// 🔄 RESET PROGRESS
+// 🔄 RESET FULL PROGRESS
 function resetProgress() {
     localStorage.removeItem("level");
     localStorage.removeItem("score");

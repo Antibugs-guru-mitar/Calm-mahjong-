@@ -7,32 +7,36 @@ let firstTile = null;
 let matchedTiles = 0;
 let totalTiles = 0;
 
-// 🧩 LEVEL SYSTEM (PHASE 3)
+// 🧩 LEVEL SYSTEM
 let level = 1;
 
-// Base tiles (we will increase per level)
-const baseTiles = ["🍎","🍎","🍌","🍌","🍇","🍇","🍒","🍒","🍉","🍉","🍍","🍍"];
+// Base tiles
+const base = ["🍎","🍌","🍇","🍒","🍉","🍍"];
 
 // Shuffle
 function shuffle(array) {
     return array.sort(() => Math.random() - 0.5);
 }
 
-// Generate level tiles dynamically
+// 🔥 FIXED LEVEL TILE GENERATOR
 function getLevelTiles(level) {
-    let tiles = [...baseTiles];
+    let tiles = [];
 
-    // Level increase logic 🔥
-    for (let i = 1; i < level; i++) {
-        tiles = tiles.concat(["🥝","🥝","🍓","🍓"]); // extra pairs
+    // pairs increase with level
+    let pairs = 6 + (level - 1) * 2;
+
+    for (let i = 0; i < pairs; i++) {
+        let item = base[i % base.length];
+        tiles.push(item, item);
     }
 
     return tiles;
 }
 
-// Start Game
+// Start / Reset Game (FULL FIXED)
 function startGame() {
     board.innerHTML = "";
+
     score = 0;
     matchedTiles = 0;
     firstTile = null;
@@ -44,7 +48,7 @@ function startGame() {
     }
 
     let levelTiles = getLevelTiles(level);
-    let shuffled = shuffle([...levelTiles]);
+    let shuffled = shuffle(levelTiles);
 
     totalTiles = shuffled.length;
 
@@ -69,7 +73,6 @@ function handleTileClick(tile) {
     } else {
         if (firstTile.innerText === tile.innerText && firstTile !== tile) {
 
-            // MATCH FOUND
             firstTile.classList.add("matched");
             tile.classList.add("matched");
 
@@ -98,9 +101,9 @@ function handleTileClick(tile) {
     }
 }
 
-// 🏆 NEXT LEVEL SYSTEM (PHASE 3 MAIN ADD)
+// 🏆 NEXT LEVEL SYSTEM
 function restartGame() {
-    level++; // level up 🔥
+    level++;
     startGame();
 }
 

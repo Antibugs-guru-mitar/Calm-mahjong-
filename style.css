@@ -30,11 +30,13 @@ h1 {
     color: #333;
 }
 
-/* Score */
+/* Info (Level + Score) */
 .info {
     margin-bottom: 15px;
     font-size: 18px;
     color: #444;
+    display: flex;
+    justify-content: space-around;
 }
 
 /* Board */
@@ -46,7 +48,7 @@ h1 {
     min-height: 300px;
 }
 
-/* Tiles */
+/* Tiles (PHASE 4 POLISH) */
 .tile {
     background: #f0f0f0;
     border-radius: 8px;
@@ -55,20 +57,26 @@ h1 {
     justify-content: center;
     align-items: center;
     cursor: pointer;
-    transition: 0.2s ease;
     font-size: 20px;
     user-select: none;
+
+    transition: all 0.2s ease;
 }
 
-/* Hover effect */
+/* Hover */
 .tile:hover {
     transform: scale(1.08);
     background: #e0e0e0;
 }
 
-/* Click effect */
+/* Click */
 .tile:active {
-    transform: scale(0.95);
+    transform: scale(0.92);
+}
+
+/* Matched effect */
+.tile.matched {
+    opacity: 0.6;
 }
 
 /* Buttons */
@@ -87,14 +95,14 @@ h1 {
     background: #357ab7;
 }
 
-/* WIN SCREEN 🔥 */
+/* WIN SCREEN (PHASE 4 IMPROVED) */
 #win-message {
     margin-top: 20px;
     padding: 20px;
     background: linear-gradient(135deg, #e6ffe6, #ffffff);
     border-radius: 12px;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-    animation: pop 0.4s ease;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+    animation: pop 0.3s ease;
 }
 
 #win-message h2 {
@@ -104,6 +112,12 @@ h1 {
 
 /* animation */
 @keyframes pop {
-    from { transform: scale(0.8); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
+    from {
+        transform: scale(0.7);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
 }

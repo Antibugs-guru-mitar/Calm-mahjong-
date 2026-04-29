@@ -3,19 +3,22 @@ const scoreText = document.getElementById("score");
 const winMessage = document.getElementById("win-message");
 const levelText = document.getElementById("level");
 
+const menuScreen = document.getElementById("menu-screen");
+const gameContainer = document.getElementById("game-container");
+
 // 💾 SAFE LOAD
 let level = parseInt(localStorage.getItem("level")) || 1;
 let score = parseInt(localStorage.getItem("score")) || 0;
 let bestScore = parseInt(localStorage.getItem("bestScore")) || 0;
 
-// 🎮 GAME STATE (PHASE 6 ADD)
-let gameState = "playing"; // playing | win | menu
+// 🎮 GAME STATE
+let gameState = "menu"; // menu | playing | win
 
 let firstTile = null;
 let matchedTiles = 0;
 let totalTiles = 0;
 
-// 🏆 ACHIEVEMENTS (PHASE 6)
+// 🏆 ACHIEVEMENTS
 let achievements = JSON.parse(localStorage.getItem("achievements")) || [];
 
 // 🧩 Base tiles
@@ -39,7 +42,42 @@ function getLevelTiles(level) {
     return tiles;
 }
 
-// 🎮 LEVEL START ANIMATION
+// 🎮 MENU SHOW
+function showMenu() {
+    gameState = "menu";
+
+    if (menuScreen) menuScreen.style.display = "flex";
+    if (gameContainer) gameContainer.style.display = "none";
+}
+
+// 🎮 GAME SHOW
+function showGame() {
+    if (menuScreen) menuScreen.style.display = "none";
+    if (gameContainer) gameContainer.style.display = "block";
+}
+
+// 🆕 NEW GAME
+function newGame() {
+    level = 1;
+    score = 0;
+
+    localStorage.setItem("level", level);
+    localStorage.setItem("score", score);
+
+    showGame();
+    startGame();
+}
+
+// ▶ CONTINUE
+function continueGame() {
+    level = parseInt(localStorage.getItem("level")) || 1;
+    score = parseInt(localStorage.getItem("score")) || 0;
+
+    showGame();
+    startGame();
+}
+
+// 🎮 LEVEL START
 function showLevelStart() {
     if (winMessage) {
         winMessage.style.display = "block";
@@ -54,13 +92,12 @@ function showLevelStart() {
     }, 700);
 }
 
-// 🔊 SOUND SYSTEM (PHASE 6 HOOK)
+// 🔊 SOUND HOOK
 function playSound(type) {
-    // future: click.mp3 / win.mp3
     console.log("Sound:", type);
 }
 
-// 🏆 ACHIEVEMENT CHECK
+// 🏆 ACHIEVEMENTS
 function checkAchievements() {
     if (score >= 100 && !achievements.includes("score100")) {
         achievements.push("score100");
@@ -73,7 +110,7 @@ function checkAchievements() {
     localStorage.setItem("achievements", JSON.stringify(achievements));
 }
 
-// Start Game
+// 🎮 START GAME
 function startGame() {
     board.innerHTML = "";
 
@@ -83,9 +120,7 @@ function startGame() {
 
     scoreText.innerText = score;
 
-    if (levelText) {
-        levelText.innerText = level;
-    }
+    if (levelText) levelText.innerText = level;
 
     showLevelStart();
 
@@ -94,6 +129,7 @@ function startGame() {
 
     shuffled.forEach(symbol => {
         let tile = document.createElement("div");
+
         tile.classList.add("tile");
         tile.innerText = symbol;
 
@@ -106,7 +142,7 @@ function startGame() {
     });
 }
 
-// Tile logic
+// 🎯 TILE LOGIC
 function handleTileClick(tile) {
 
     if (gameState !== "playing") return;
@@ -187,6 +223,7 @@ function hint() {
 
     if (tiles.length > 0) {
         let randomTile = tiles[Math.floor(Math.random() * tiles.length)];
+
         randomTile.style.background = "#fff3cd";
 
         setTimeout(() => {
@@ -198,6 +235,7 @@ function hint() {
 // 🔀 SHUFFLE
 function shuffleBoard() {
     let tiles = Array.from(board.children);
+
     board.innerHTML = "";
 
     shuffle(tiles);
@@ -205,7 +243,7 @@ function shuffleBoard() {
     tiles.forEach(tile => board.appendChild(tile));
 }
 
-// 🔄 RESET PROGRESS
+// ♻ RESET PROGRESS
 function resetProgress() {
     localStorage.clear();
 
@@ -213,8 +251,8 @@ function resetProgress() {
     score = 0;
     achievements = [];
 
-    startGame();
+    showMenu();
 }
 
-// Auto start
-startGame();
+// 🚀 AUTO START MENU
+showMenu();

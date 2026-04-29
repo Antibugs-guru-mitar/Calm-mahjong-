@@ -10,7 +10,7 @@
 
 <body>
 
-    <!-- 🧠 MENU SCREEN (PHASE 7 CORE) -->
+    <!-- 🧠 MENU SCREEN -->
     <div id="menu-screen" class="menu-screen">
 
         <div class="menu-box">
@@ -26,35 +26,29 @@
 
     </div>
 
-    <!-- 🎮 GAME AREA -->
+    <!-- 🎮 GAME -->
     <div class="game-container" id="game-container" style="display:none;">
 
         <h1>Calm Mahjong</h1>
 
-        <!-- 🧠 STATUS BAR -->
         <div class="info">
             <p>Level: <span id="level">1</span></p>
             <p>Score: <span id="score">0</span></p>
             <p>Best: <span id="best-score">0</span></p>
         </div>
 
-        <!-- 🎮 GAME BOARD -->
         <div id="game-board" class="board"></div>
 
-        <!-- 🏆 ACHIEVEMENTS -->
-        <div id="achievement-bar" class="achievement-bar"></div>
+        <div id="achievement-bar"></div>
 
-        <!-- 🎛 CONTROLS -->
         <div class="controls">
-
-            <button onclick="startGame()">▶ Start</button>
             <button onclick="restartGame()">🔄 Restart</button>
-
             <button onclick="hint()">💡 Hint</button>
             <button onclick="shuffleBoard()">🔀 Shuffle</button>
             <button onclick="resetProgress()">♻ Reset</button>
-
         </div>
+
+        <div id="win-message" style="display:none;"></div>
 
     </div>
 

@@ -1,825 +1,706 @@
-const board = document.getElementById("game-board");
-const scoreText = document.getElementById("score");
-const winMessage = document.getElementById("win-message");
-const levelText = document.getElementById("level");
-const bestScoreText = document.getElementById("best-score");
-const menuScreen = document.getElementById("menu-screen");
-const gameContainer = document.getElementById("game-container");
-const continueBtn = document.getElementById("continue-btn");
-// BUG FIX: Null check + fallback
-const doorLeft = document.querySelector('.door-left') || document.createElement('div');
-const doorRight = document.querySelector('.door-right') || document.createElement('div');
+/* ===================================
+   VITA KILLER PRO MAX ULTIMATE - JS
+   Candy Crush Rule: 3 Match = Crush
+   10 Lines x 8 Tiles | 100 Levels | 20 Min
+   Mobile DOM Fix + Solvable Boards + Bug Free
+=================================== */
 
-// 🎮 GAME STATE
-let gameState = "menu";
+// ========== CONFIG ==========
+const CONFIG = {
+    LEVELS: 100,
+    TIME_PER_LEVEL: 20 * 60,
+    ROWS: 10,
+    COLS: 8,
+    MATCH_COUNT: 3,
+    TILE_TYPES: 8,
+    TILE_COLORS: [
+        '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A',
+        '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E2'
+    ],
+    POINTS: { MATCH_3: 100, MATCH_4: 300, MATCH_5: 500 }
+};
 
-// 💾 SAFE LOAD
-let level = parseInt(localStorage.getItem("level")) || 1;
-let score = parseInt(localStorage.getItem("score")) || 0;
-let bestScore = parseInt(localStorage.getItem("bestScore")) || 0;
+// ========== GAME STATE ==========
+let gameState = {
+    level: 1,
+    score: 0,
+    bestScore: 0,
+    timeLeft: CONFIG.TIME_PER_LEVEL,
+    board: [],
+    selectedTile: null,
+    isSwapping: false,
+    isProcessing: false,
+    timerInterval: null,
+    moves: 0,
+    combo: 0
+};
 
-// PHASE 12 VARIABLES - LIGHT WEIGHT
-let firstTile = null;
-let matchedTiles = 0;
-let totalTiles = 0;
-let combo = 0;
-let lastMatchTime = 0;
-let timerInterval = null;
-let timeLeft = 60;
-let isDarkMode = localStorage.getItem("darkMode") === "true";
-let maxCombo = parseInt(localStorage.getItem("maxCombo")) || 0;
-let totalGames = parseInt(localStorage.getItem("totalGames")) || 0;
-let undoStack = [];
-let zenMode = localStorage.getItem("zenMode") === "true";
-let achievements = JSON.parse(localStorage.getItem("achievements")) || [];
+// ========== DOM ELEMENTS ==========
+let boardEl, levelEl, scoreEl, bestEl, timerEl, winPopupEl;
+let menuScreenEl, gameContainerEl;
 
-const base = ["🍎","🍌","🍇","🍒","🍉","🍍","🥝","🍓","🥭","🍑","🍐","🥥"];
-
-function shuffle(array) {
-    let arr = [...array];
-    for (let i = arr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-    }
-    return arr;
-}
-
-function getLevelTiles(level) {
-    let tiles = [];
-    let pairs = Math.min(4 + level, 20);
-    for (let i = 0; i < pairs; i++) {
-        let item = base[i % base.length];
-        tiles.push(item, item);
-    }
-    return tiles;
-}
-
-/* =========================
-   🚪 DOOR ANIMATION - BUG FIX
-========================= */
-
-function openDoor(callback) {
-    if (!doorLeft.classList ||!doorRight.classList) {
-        if(callback) callback();
-        return;
-    }
+// ========== INIT GAME - FIXED DOM CRASH ==========
+document.addEventListener('DOMContentLoaded', () => {
     try {
-        doorLeft.classList.add('open');
-        doorRight.classList.add('open');
-        setTimeout(() => {
-            doorLeft.style.pointerEvents = 'none';
-            doorRight.style.pointerEvents = 'none';
-            if(callback) callback();
-        }, 800);
-    } catch(e) {
-        if(callback) callback();
-    }
-}
+        // ✅ BUG FIX 1: Safe DOM cache with fallback
+        boardEl = document.getElementById('game-board');
+        levelEl = document.getElementById('level');
+        scoreEl = document.getElementById('score');
+        bestEl = document.getElementById('best-score');
+        timerEl = document.getElementById('timer-display');
+        winPopupEl = document.getElementById('win-message');
+        menuScreenEl = document.getElementById('menu-screen');
+        gameContainerEl = document.getElementById('game-container');
 
-function closeDoor() {
-    if (!doorLeft.classList ||!doorRight.classList) return;
-    try {
-        doorLeft.style.pointerEvents = 'auto';
-        doorRight.style.pointerEvents = 'auto';
+        // ✅ BUG FIX 2: Agar DOM element na mile to error na de
+        if (!boardEl ||!gameContainerEl) {
+            console.error('Critical DOM elements missing!');
+            document.body.innerHTML = '<h1 style="color:red;text-align:center;margin-top:50px;">Game Error: HTML structure missing. Refresh karo.</h1>';
+            return;
+        }
+
+        // Door animation fix - Hide doors after animation
         setTimeout(() => {
-            doorLeft.classList.remove('open');
-            doorRight.classList.remove('open');
+            document.querySelector('.door-left')?.classList.add('open');
+            document.querySelector('.door-right')?.classList.add('open');
+            setTimeout(() => {
+                document.body.classList.add('no-doors');
+            }, 800);
         }, 100);
-    } catch(e) {}
-}
 
-/* =========================
-   🧠 SCREEN CONTROL
-========================= */
+        // ✅ BUG FIX 3: Safe localStorage access
+        gameState.bestScore = parseInt(localStorage.getItem('vk_bestScore') || '0');
 
-function showGame() {
-    closeDoor();
-    setTimeout(() => {
-        menuScreen.style.display = "none";
-        gameContainer.style.display = "block";
-        startParticleTrail();
-        openDoor();
-    }, 300);
-}
+        loadProgress();
+        updateUI();
+        showMenu();
+    } catch (error) {
+        console.error('Init Error:', error);
+        alert('Game load failed. Page refresh karo.');
+    }
+});
 
+// ========== MENU FUNCTIONS ==========
 function showMenu() {
-    gameState = "menu";
-    closeDoor();
-    setTimeout(() => {
-        menuScreen.style.display = "flex";
-        gameContainer.style.display = "none";
-        board.innerHTML = "";
-        stopTimer();
-        stopParticleTrail();
-        checkContinueButton();
-        checkDailyChallenge();
-        checkAchievements();
-        openDoor();
-    }, 300);
-}
+    stopTimer();
+    if (menuScreenEl) menuScreenEl.style.display = 'flex';
+    if (gameContainerEl) gameContainerEl.style.display = 'none';
+    if (winPopupEl) winPopupEl.style.display = 'none';
 
-/* =========================
-   🎮 MENU BUTTONS
-========================= */
+    const continueBtn = document.getElementById('continue-btn');
+    if (localStorage.getItem('vk_savedBoard') && continueBtn) {
+        continueBtn.style.display = 'block';
+    }
+}
 
 function newGame() {
-    level = 1;
-    score = 0;
-    combo = 0;
-    undoStack = [];
-    totalGames++;
-    localStorage.setItem("totalGames", totalGames);
-    localStorage.setItem("level", level);
-    localStorage.setItem("score", score);
-    localStorage.removeItem("savedBoard");
-    localStorage.removeItem("savedMatched");
-    showGame();
-    startGame();
+    clearSave();
+    gameState.level = 1;
+    gameState.score = 0;
+    gameState.timeLeft = CONFIG.TIME_PER_LEVEL;
+    startLevel();
 }
 
 function continueGame() {
-    const savedBoard = JSON.parse(localStorage.getItem("savedBoard"));
-    const savedMatched = parseInt(localStorage.getItem("savedMatched")) || 0;
-    undoStack = [];
-    showGame();
-    startGame(savedBoard, savedMatched);
-}
-
-/* =========================
-   🎮 LEVEL START
-========================= */
-
-function showLevelStart() {
-    winMessage.style.display = "block";
-    winMessage.innerHTML = `
-        <h2>🎮 Level ${level}</h2>
-        <p>Get Ready...</p>
-    `;
-    setTimeout(() => {
-        winMessage.style.display = "none";
-    }, 700);
-}
-
-/* =========================
-   🎮 START GAME
-========================= */
-
-function startGame(savedBoard = null, savedMatched = 0) {
-    gameState = "playing";
-    board.innerHTML = "";
-    matchedTiles = savedMatched;
-    firstTile = null;
-    combo = 0;
-    undoStack = [];
-
-    scoreText.innerText = score;
-    levelText.innerText = level;
-    bestScoreText.innerText = bestScore;
-
-    showLevelStart();
-
-    let shuffled;
-    if (savedBoard) {
-        shuffled = savedBoard;
-        totalTiles = savedBoard.length;
-    } else {
-        shuffled = shuffle(getLevelTiles(level));
-        totalTiles = shuffled.length;
-        localStorage.removeItem("savedBoard");
-        localStorage.removeItem("savedMatched");
-    }
-
-    shuffled.forEach(symbol => {
-        if (symbol === "matched") return;
-        let tile = document.createElement("div");
-        tile.classList.add("tile");
-        tile.innerText = symbol;
-        tile.addEventListener("click", () => handleTileClick(tile));
-        board.appendChild(tile);
-    });
-
-    if (level >= 5 &&!savedBoard &&!zenMode) {
-        timeLeft = 60 + (level - 5) * 10;
-        timeLeft = Math.min(timeLeft, 180);
-        startTimer();
-    }
-
-    saveCurrentBoard();
-    checkAchievement('game_start');
-}
-
-/* =========================
-   🎮 TILE LOGIC
-========================= */
-
-function handleTileClick(tile) {
-    if (gameState!== "playing") return;
-    if (tile.classList.contains("matched")) return;
-    if (tile === firstTile) return;
-
-    if (navigator.vibrate) navigator.vibrate(30);
-
-    if (!firstTile) {
-        firstTile = tile;
-        tile.classList.add("selected");
-        return;
-    }
-
-    saveUndoState();
-
-    if (firstTile.innerText === tile.innerText) {
-        const now = Date.now();
-        if (now - lastMatchTime < 2000) {
-            combo++;
-        } else {
-            combo = 1;
-        }
-        lastMatchTime = now;
-        const comboMultiplier = Math.min(combo, 5);
-
-        firstTile.classList.add("matched");
-        tile.classList.add("matched");
-        firstTile.classList.remove("selected");
-        score += 10 * comboMultiplier;
-        matchedTiles += 2;
-
-        if (combo > 1) showComboText(comboMultiplier);
-        if (combo > maxCombo) {
-            maxCombo = combo;
-            localStorage.setItem("maxCombo", maxCombo);
-        }
-
-        if (score > bestScore) {
-            bestScore = score;
-            localStorage.setItem("bestScore", bestScore);
-            bestScoreText.innerText = bestScore;
-        }
-
-        localStorage.setItem("score", score);
-        scoreText.innerText = score;
-
-        checkAchievement('combo', combo);
-        checkAchievement('match');
-
-        if (matchedTiles === totalTiles) {
-            gameState = "win";
-            stopTimer();
-            localStorage.removeItem("savedBoard");
-            localStorage.removeItem("savedMatched");
-            playVictoryJashan();
-            checkAchievement('level_complete', level);
-
-            setTimeout(() => {
-                winMessage.style.display = "block";
-                winMessage.innerHTML = `
-                    <h2>🎉 Level ${level} Complete!</h2>
-                    <p>Score: ${score}</p>
-                    ${combo > 1? `<p>Max Combo: X${maxCombo} 🔥</p>` : ''}
-                    <button class="btn-primary" onclick="nextLevel()">Next Level</button>
-                    <button class="btn-ghost" onclick="showMenu()">Main Menu</button>
-                `;
-            }, 400);
-        }
-    } else {
-        combo = 0;
-        firstTile.classList.remove("selected");
-        tile.style.animation = "shake 0.3s";
-        setTimeout(() => tile.style.animation = "", 300);
-        undoStack.pop();
-    }
-
-    firstTile = null;
-    saveCurrentBoard();
-}
-
-/* =========================
-   ↩️ UNDO MOVE
-========================= */
-
-function saveUndoState() {
-    const state = {
-        board: board.innerHTML,
-        score: score,
-        combo: combo,
-        matchedTiles: matchedTiles
-    };
-    undoStack.push(state);
-    if (undoStack.length > 3) undoStack.shift();
-}
-
-function undoMove() {
-    if (undoStack.length === 0) return;
-    if (gameState!== "playing") return;
-
-    const state = undoStack.pop();
-    board.innerHTML = state.board;
-    score = state.score;
-    combo = state.combo;
-    matchedTiles = state.matchedTiles;
-
-    scoreText.innerText = score;
-
-    board.querySelectorAll('.tile').forEach(tile => {
-        if (!tile.classList.contains('matched')) {
-            tile.addEventListener("click", () => handleTileClick(tile));
-        }
-    });
-
-    showToast('↩️ Move Undone!');
-}
-
-/* =========================
-   🎮 NEXT LEVEL
-========================= */
-
-function nextLevel() {
-    level++;
-    localStorage.setItem("level", level);
-    winMessage.style.display = "none";
-    startGame();
-}
-
-/* =========================
-   🔄 RESET
-========================= */
-
-function restartGame() {
-    winMessage.style.display = "none";
-    localStorage.removeItem("savedBoard");
-    localStorage.removeItem("savedMatched");
-    stopTimer();
-    startGame();
+    loadProgress();
+    startLevel();
 }
 
 function resetProgress() {
-    if (!confirm("Sara progress delete ho jaye ga. Pakka?")) return;
-    localStorage.clear();
-    level = 1;
-    score = 0;
-    bestScore = 0;
-    combo = 0;
-    maxCombo = 0;
-    totalGames = 0;
-    achievements = [];
-    board.innerHTML = "";
-    winMessage.style.display = "none";
-    stopTimer();
-    showMenu();
+    if (confirm('Reset all progress? Level 1 se shuru hoga.')) {
+        try {
+            localStorage.clear();
+            location.reload();
+        } catch (e) {
+            alert('Reset failed. Browser storage issue.');
+        }
+    }
 }
 
-/* =========================
-   💡 HINT & SHUFFLE
-========================= */
+// ========== LEVEL SYSTEM - FIXED TIMER RESET ==========
+function startLevel() {
+    if (menuScreenEl) menuScreenEl.style.display = 'none';
+    if (gameContainerEl) gameContainerEl.style.display = 'block';
 
-function hint() {
-    if (gameState!== "playing") return;
-    const tiles = Array.from(board.querySelectorAll('.tile:not(.matched)'));
-    if (tiles.length < 2) return;
+    gameState.isProcessing = false;
+    gameState.selectedTile = null;
+    gameState.combo = 0;
+    gameState.moves = 0;
 
-    for (let i = 0; i < tiles.length; i++) {
-        for (let j = i + 1; j < tiles.length; j++) {
-            if (tiles[i].innerText === tiles[j].innerText) {
-                tiles[i].style.boxShadow = "0 0 0 4px #00ff00";
-                tiles[j].style.boxShadow = "0 0 0 4px #00ff00";
-                setTimeout(() => {
-                    tiles[i].style.boxShadow = "";
-                    tiles[j].style.boxShadow = "";
-                }, 1000);
-                return;
+    // ✅ BUG FIX 4: Timer color reset har level pe
+    timerEl?.classList.remove('warning', 'danger');
+
+    generateBoard();
+    renderBoard();
+    startTimer();
+    updateUI();
+    saveProgress();
+}
+
+function generateBoard() {
+    gameState.board = [];
+    let attempts = 0;
+    do {
+        gameState.board = [];
+        for (let row = 0; row < CONFIG.ROWS; row++) {
+            gameState.board[row] = [];
+            for (let col = 0; col < CONFIG.COLS; col++) {
+                let tileType;
+                let tries = 0;
+                do {
+                    tileType = Math.floor(Math.random() * CONFIG.TILE_TYPES);
+                    tries++;
+                } while (tries < 50 && wouldCauseMatch(row, col, tileType));
+
+                gameState.board[row][col] = {
+                    type: tileType,
+                    id: `${row}-${col}-${Date.now()}-${Math.random()}`,
+                    matched: false,
+                    falling: false
+                };
+            }
+        }
+        attempts++;
+    } while (!hasPossibleMoves() && attempts < 100);
+
+    if (!hasPossibleMoves()) {
+        forcePossibleMove();
+    }
+}
+
+function wouldCauseMatch(row, col, tileType) {
+    if (col >= 2 &&
+        gameState.board[row][col-1]?.type === tileType &&
+        gameState.board[row][col-2]?.type === tileType) {
+        return true;
+    }
+    if (row >= 2 &&
+        gameState.board[row-1][col]?.type === tileType &&
+        gameState.board[row-2][col]?.type === tileType) {
+        return true;
+    }
+    return false;
+}
+
+function forcePossibleMove() {
+    for (let row = 0; row < CONFIG.ROWS - 1; row++) {
+        for (let col = 0; col < CONFIG.COLS - 1; col++) {
+            gameState.board[row][col].type = 0;
+            gameState.board[row][col + 1].type = 0;
+            gameState.board[row + 1][col].type = 0;
+            return;
+        }
+    }
+}
+
+// ========== RENDER BOARD ==========
+function renderBoard() {
+    if (!boardEl) return;
+    boardEl.innerHTML = '';
+    boardEl.style.gridTemplateColumns = `repeat(${CONFIG.COLS}, 1fr)`;
+
+    for (let row = 0; row < CONFIG.ROWS; row++) {
+        for (let col = 0; col < CONFIG.COLS; col++) {
+            const tile = gameState.board[row][col];
+            const tileEl = document.createElement('div');
+            tileEl.className = 'tile';
+            tileEl.dataset.row = row;
+            tileEl.dataset.col = col;
+            tileEl.dataset.id = tile.id;
+
+            tileEl.style.background = CONFIG.TILE_COLORS[tile.type];
+            tileEl.style.boxShadow = `inset 0 0 0 3px rgba(255,255,255,0.3), 0 4px 15px rgba(0,0,0,0.2)`;
+
+            if (tile.matched) tileEl.classList.add('matched');
+            if (tile.falling) tileEl.classList.add('falling');
+
+            tileEl.addEventListener('click', () => handleTileClick(row, col));
+            boardEl.appendChild(tileEl);
+        }
+    }
+}
+
+// ========== GAME LOGIC - CANDY CRUSH ==========
+function handleTileClick(row, col) {
+    if (gameState.isProcessing || gameState.isSwapping) return;
+    if (gameState.board[row][col].matched) return;
+
+    const clickedTile = { row, col };
+
+    if (!gameState.selectedTile) {
+        gameState.selectedTile = clickedTile;
+        getTileElement(row, col)?.classList.add('selected');
+    } else {
+        const prevTile = gameState.selectedTile;
+        getTileElement(prevTile.row, prevTile.col)?.classList.remove('selected');
+
+        if (isAdjacent(prevTile, clickedTile)) {
+            swapTiles(prevTile, clickedTile);
+        } else {
+            gameState.selectedTile = clickedTile;
+            getTileElement(row, col)?.classList.add('selected');
+        }
+    }
+}
+
+function isAdjacent(tile1, tile2) {
+    const rowDiff = Math.abs(tile1.row - tile2.row);
+    const colDiff = Math.abs(tile1.col - tile2.col);
+    return (rowDiff === 1 && colDiff === 0) || (rowDiff === 0 && colDiff === 1);
+}
+
+function swapTiles(tile1, tile2) {
+    gameState.isSwapping = true;
+    gameState.moves++;
+
+    const temp = gameState.board[tile1.row][tile1.col];
+    gameState.board[tile1.row][tile1.col] = gameState.board[tile2.row][tile2.col];
+    gameState.board[tile2.row][tile2.col] = temp;
+
+    renderBoard();
+
+    setTimeout(() => {
+        const matches = findMatches();
+        if (matches.length > 0) {
+            gameState.selectedTile = null;
+            processMatches(matches);
+        } else {
+            const temp2 = gameState.board[tile1.row][tile1.col];
+            gameState.board[tile1.row][tile1.col] = gameState.board[tile2.row][tile2.col];
+            gameState.board[tile2.row][tile2.col] = temp2;
+            renderBoard();
+            shakeBoard();
+        }
+        gameState.isSwapping = false;
+    }, 300);
+}
+
+// ✅ BUG FIX 5: Duplicate match prevention
+function findMatches() {
+    const matchSet = new Set();
+    const matches = [];
+
+    // Horizontal
+    for (let row = 0; row < CONFIG.ROWS; row++) {
+        for (let col = 0; col < CONFIG.COLS - 2; col++) {
+            if (gameState.board[row][col].matched) continue;
+            const type = gameState.board[row][col].type;
+            let matchLength = 1;
+
+            for (let k = col + 1; k < CONFIG.COLS; k++) {
+                if (gameState.board[row][k].type === type &&!gameState.board[row][k].matched) {
+                    matchLength++;
+                } else break;
+            }
+
+            if (matchLength >= CONFIG.MATCH_COUNT) {
+                for (let k = 0; k < matchLength; k++) {
+                    const key = `${row}-${col + k}`;
+                    if (!matchSet.has(key)) {
+                        matchSet.add(key);
+                        matches.push({ row, col: col + k });
+                    }
+                }
+            }
+        }
+    }
+
+    // Vertical
+    for (let col = 0; col < CONFIG.COLS; col++) {
+        for (let row = 0; row < CONFIG.ROWS - 2; row++) {
+            if (gameState.board[row][col].matched) continue;
+            const type = gameState.board[row][col].type;
+            let matchLength = 1;
+
+            for (let k = row + 1; k < CONFIG.ROWS; k++) {
+                if (gameState.board[k][col].type === type &&!gameState.board[k][col].matched) {
+                    matchLength++;
+                } else break;
+            }
+
+            if (matchLength >= CONFIG.MATCH_COUNT) {
+                for (let k = 0; k < matchLength; k++) {
+                    const key = `${row + k}-${col}`;
+                    if (!matchSet.has(key)) {
+                        matchSet.add(key);
+                        matches.push({ row: row + k, col });
+                    }
+                }
+            }
+        }
+    }
+
+    return matches;
+}
+
+// ✅ IMPROVEMENT 1: Cascade multiplier better
+function processMatches(matches) {
+    if (matches.length === 0) {
+        gameState.isProcessing = false;
+        checkLevelComplete();
+        return;
+    }
+
+    gameState.isProcessing = true;
+    gameState.combo++;
+
+    // Calculate score - IMPROVED CASCADE
+    let points = 0;
+    const matchCount = matches.length;
+    if (matchCount === 3) points = CONFIG.POINTS.MATCH_3;
+    else if (matchCount === 4) points = CONFIG.POINTS.MATCH_4;
+    else points = CONFIG.POINTS.MATCH_5;
+
+    // ✅ Cascade multiplier: 1x, 1.5x, 2x, 2.5x...
+    points *= (1 + gameState.combo * 0.5);
+    gameState.score += Math.floor(points);
+
+    matches.forEach(({ row, col }) => {
+        gameState.board[row][col].matched = true;
+        getTileElement(row, col)?.classList.add('matched');
+    });
+
+    updateUI();
+    showComboText(matchCount);
+
+    setTimeout(() => {
+        dropTiles();
+        fillBoard();
+        renderBoard();
+
+        setTimeout(() => {
+            const newMatches = findMatches();
+            if (newMatches.length > 0) {
+                processMatches(newMatches);
+            } else {
+                gameState.combo = 0;
+                gameState.isProcessing = false;
+                checkLevelComplete();
+                if (!hasPossibleMoves()) {
+                    shuffleBoard();
+                }
+            }
+        }, 300);
+    }, 400);
+}
+
+function dropTiles() {
+    for (let col = 0; col < CONFIG.COLS; col++) {
+        let emptyRow = CONFIG.ROWS - 1;
+        for (let row = CONFIG.ROWS - 1; row >= 0; row--) {
+            if (!gameState.board[row][col].matched) {
+                if (row!== emptyRow) {
+                    gameState.board[emptyRow][col] = gameState.board[row][col];
+                    gameState.board[emptyRow][col].falling = true;
+                    gameState.board[row][col] = {
+                        type: -1,
+                        matched: true,
+                        id: `empty-${Date.now()}`
+                    };
+                }
+                emptyRow--;
             }
         }
     }
 }
 
-function shuffleBoard() {
-    if (gameState!== "playing") return;
-    saveUndoState();
-    const tiles = Array.from(board.children);
-    const symbols = tiles.map(t => t.innerText);
-    const shuffledSymbols = shuffle(symbols);
-
-    tiles.forEach((tile, i) => {
-        if (!tile.classList.contains("matched")) {
-            tile.innerText = shuffledSymbols[i];
-            tile.style.animation = "fadeIn 0.3s";
+function fillBoard() {
+    for (let row = 0; row < CONFIG.ROWS; row++) {
+        for (let col = 0; col < CONFIG.COLS; col++) {
+            if (gameState.board[row][col].matched || gameState.board[row][col].type === -1) {
+                gameState.board[row][col] = {
+                    type: Math.floor(Math.random() * CONFIG.TILE_TYPES),
+                    id: `${row}-${col}-${Date.now()}-${Math.random()}`,
+                    matched: false,
+                    falling: true
+                };
+            }
         }
-    });
-    saveCurrentBoard();
-}
-
-/* =========================
-   💾 BOARD SAVE
-========================= */
-
-function saveCurrentBoard() {
-    const tiles = Array.from(board.children).map(tile => tile.innerText);
-    localStorage.setItem("savedBoard", JSON.stringify(tiles));
-    localStorage.setItem("savedMatched", matchedTiles);
-}
-
-/* =========================
-   🔍 HELPER
-========================= */
-
-function checkContinueButton() {
-    const savedLevel = localStorage.getItem("level");
-    const savedScore = localStorage.getItem("score");
-    const savedBoard = localStorage.getItem("savedBoard");
-    if (savedLevel && savedScore && savedBoard) {
-        continueBtn.style.display = "block";
-    } else {
-        continueBtn.style.display = "none";
     }
 }
 
-/* =========================
-   🎉 VICTORY JASHAN - LIGHT
-========================= */
-
-function playVictoryJashan() {
-    gameContainer.style.animation = "flash 0.3s";
-    setTimeout(() => gameContainer.style.animation = "", 300);
-    launchConfetti();
-    if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+function hasPossibleMoves() {
+    for (let row = 0; row < CONFIG.ROWS; row++) {
+        for (let col = 0; col < CONFIG.COLS; col++) {
+            if (col < CONFIG.COLS - 1) {
+                swapInArray(row, col, row, col + 1);
+                if (findMatches().length > 0) {
+                    swapInArray(row, col, row, col + 1);
+                    return true;
+                }
+                swapInArray(row, col, row, col + 1);
+            }
+            if (row < CONFIG.ROWS - 1) {
+                swapInArray(row, col, row + 1, col);
+                if (findMatches().length > 0) {
+                    swapInArray(row, col, row + 1, col);
+                    return true;
+                }
+                swapInArray(row, col, row + 1, col);
+            }
+        }
+    }
+    return false;
 }
 
-function launchConfetti() {
-    const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00'];
-    for (let i = 0; i < 20; i++) {
-        createConfettiPiece(colors[Math.floor(Math.random() * colors.length)]);
+function swapInArray(r1, c1, r2, c2) {
+    const temp = gameState.board[r1][c1];
+    gameState.board[r1][c1] = gameState.board[r2][c2];
+    gameState.board[r2][c2] = temp;
+}
+
+// ========== LEVEL COMPLETE ==========
+function checkLevelComplete() {
+    const targetScore = gameState.level * 5000;
+    if (gameState.score >= targetScore) {
+        levelComplete();
     }
 }
 
-function createConfettiPiece(color) {
-    const confetti = document.createElement('div');
-    confetti.style.position = 'fixed';
-    confetti.style.width = '10px';
-    confetti.style.height = '10px';
-    confetti.style.backgroundColor = color;
-    confetti.style.left = Math.random() * 100 + 'vw';
-    confetti.style.top = '-10px';
-    confetti.style.borderRadius = '50%';
-    confetti.style.zIndex = '999';
-    confetti.style.pointerEvents = 'none';
-    document.body.appendChild(confetti);
-    const animation = confetti.animate([
-        { transform: 'translateY(0) rotate(0deg)', opacity: 1 },
-        { transform: `translateY(100vh) rotate(${Math.random() * 720}deg)`, opacity: 0 }
-    ], {
-        duration: Math.random() * 2000 + 1000,
-        easing: 'linear'
-    });
-    animation.onfinish = () => confetti.remove();
+function levelComplete() {
+    stopTimer();
+    gameState.isProcessing = true;
+
+    if (gameState.score > gameState.bestScore) {
+        gameState.bestScore = gameState.score;
+        try {
+            localStorage.setItem('vk_bestScore', gameState.bestScore);
+        } catch (e) {
+            console.error('Best score save failed:', e);
+        }
+    }
+
+    showVictoryScreen();
+    screenShake();
+    createConfetti();
+
+    setTimeout(() => {
+        if (gameState.level >= CONFIG.LEVELS) {
+            gameComplete();
+        } else {
+            gameState.level++;
+            gameState.timeLeft = CONFIG.TIME_PER_LEVEL;
+            startLevel();
+        }
+    }, 3000);
 }
 
-/* =========================
-   🔥 COMBO TEXT
-========================= */
-
-function showComboText(x) {
-    const comboDiv = document.createElement('div');
-    comboDiv.className = 'combo-text';
-    comboDiv.innerText = `COMBO X${x}! 🔥`;
-    document.body.appendChild(comboDiv);
-    setTimeout(() => comboDiv.remove(), 1000);
+function showVictoryScreen() {
+    if (!winPopupEl) return;
+    winPopupEl.innerHTML = `
+        <h2>🎉 Level ${gameState.level} Complete! 🎉</h2>
+        <p>Score: ${gameState.score}</p>
+        <p>Moves: ${gameState.moves}</p>
+        <button class="btn-primary" onclick="hideWinPopup()">Continue</button>
+    `;
+    winPopupEl.style.display = 'block';
 }
 
-/* =========================
-   ⏱️ TIMER MODE
-========================= */
+function hideWinPopup() {
+    if (winPopupEl) winPopupEl.style.display = 'none';
+}
 
+function gameComplete() {
+    if (!winPopupEl) return;
+    winPopupEl.innerHTML = `
+        <h2>🏆 VITA KILLER DEFEATED! 🏆</h2>
+        <p>100 Levels Complete!</p>
+        <p>Final Score: ${gameState.score}</p>
+        <button class="btn-primary" onclick="newGame()">Play Again</button>
+        <button class="btn-ghost" onclick="showMenu()">Main Menu</button>
+    `;
+    clearSave();
+}
+
+// ========== EFFECTS ==========
+function showComboText(matchCount) {
+    const comboEl = document.createElement('div');
+    comboEl.className = 'combo-text';
+    comboEl.textContent = matchCount >= 5? 'AMAZING!' : matchCount >= 4? 'GREAT!' : 'NICE!';
+    document.body.appendChild(comboEl);
+    setTimeout(() => comboEl.remove(), 1000);
+}
+
+function screenShake() {
+    document.body.style.animation = 'shake 0.5s';
+    setTimeout(() => {
+        document.body.style.animation = '';
+    }, 500);
+}
+
+function createConfetti() {
+    const flowers = ['🌸', '🌺', '🌼', '🌷', '💮', '🏵️', '🌻', '🌹'];
+    for (let i = 0; i < 60; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = 'trail-particle';
+        confetti.style.left = Math.random() * 100 + '%';
+        confetti.style.top = '-20px';
+        confetti.style.fontSize = (Math.random() * 25 + 20) + 'px';
+        confetti.textContent = flowers[Math.floor(Math.random() * flowers.length)];
+        confetti.style.animationDuration = (Math.random() * 3 + 2) + 's';
+        confetti.style.position = 'fixed';
+        confetti.style.zIndex = '9999';
+        confetti.style.pointerEvents = 'none';
+        confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+        document.body.appendChild(confetti);
+        setTimeout(() => confetti.remove(), 5000);
+    }
+}
+
+function shakeBoard() {
+    if (!boardEl) return;
+    boardEl.style.animation = 'shake 0.3s';
+    setTimeout(() => {
+        boardEl.style.animation = '';
+    }, 300);
+}
+
+// ========== TIMER ==========
 function startTimer() {
-    updateTimerDisplay();
-    timerInterval = setInterval(() => {
-        timeLeft--;
+    stopTimer();
+    gameState.timerInterval = setInterval(() => {
+        gameState.timeLeft--;
         updateTimerDisplay();
-        if (timeLeft <= 0) {
+
+        if (gameState.timeLeft <= 0) {
             gameOver();
+        } else if (gameState.timeLeft <= 30) {
+            timerEl?.classList.add('danger');
+        } else if (gameState.timeLeft <= 60) {
+            timerEl?.classList.add('warning');
         }
     }, 1000);
 }
 
 function stopTimer() {
-    if (timerInterval) {
-        clearInterval(timerInterval);
-        timerInterval = null;
+    if (gameState.timerInterval) {
+        clearInterval(gameState.timerInterval);
+        gameState.timerInterval = null;
     }
 }
 
 function updateTimerDisplay() {
-    let timerEl = document.getElementById('timer-display');
-    if (!timerEl) {
-        timerEl = document.createElement('div');
-        timerEl.id = 'timer-display';
-        document.body.appendChild(timerEl);
-    }
-    timerEl.innerText = `⏱️ ${timeLeft}s`;
-    if (timeLeft < 10) {
-        timerEl.classList.add('danger');
-        timerEl.classList.remove('warning');
-    } else if (timeLeft < 20) {
-        timerEl.classList.add('warning');
-        timerEl.classList.remove('danger');
-    } else {
-        timerEl.classList.remove('warning', 'danger');
+    const mins = Math.floor(gameState.timeLeft / 60);
+    const secs = gameState.timeLeft % 60;
+    if (timerEl) {
+        timerEl.textContent = `⏱️ ${mins}:${secs.toString().padStart(2, '0')}`;
     }
 }
 
 function gameOver() {
     stopTimer();
-    gameState = "gameover";
-    winMessage.style.display = "block";
-    winMessage.innerHTML = `
+    if (!winPopupEl) return;
+    winPopupEl.innerHTML = `
         <h2>⏰ Time's Up!</h2>
-        <p>Score: ${score}</p>
-        <button class="btn-primary" onclick="restartGame()">Try Again</button>
+        <p>Level: ${gameState.level}</p>
+        <p>Score: ${gameState.score}</p>
+        <button class="btn-primary" onclick="newGame()">Try Again</button>
         <button class="btn-ghost" onclick="showMenu()">Main Menu</button>
     `;
-    document.getElementById('timer-display')?.remove();
+    winPopupEl.style.display = 'block';
 }
 
-/* =========================
-   ✨ PARTICLE TRAIL - LIGHT
-========================= */
-
-let particles = [];
-let mouseX = 0, mouseY = 0;
-
-function startParticleTrail() {
-    if (window.innerWidth < 768) return;
-    document.addEventListener('mousemove', updateMousePos);
-    document.addEventListener('touchmove', updateTouchPos);
-    requestAnimationFrame(createTrailParticle);
+// ========== UTILS ==========
+function getTileElement(row, col) {
+    return boardEl?.querySelector(`[data-row="${row}"][data-col="${col}"]`);
 }
 
-function stopParticleTrail() {
-    document.removeEventListener('mousemove', updateMousePos);
-    document.removeEventListener('touchmove', updateTouchPos);
-    particles.forEach(p => p.remove());
-    particles = [];
+function updateUI() {
+    if (levelEl) levelEl.textContent = gameState.level;
+    if (scoreEl) scoreEl.textContent = gameState.score;
+    if (bestEl) bestEl.textContent = gameState.bestScore;
+    updateTimerDisplay();
 }
 
-function updateMousePos(e) {
-    mouseX = e.clientX;
-    mouseY = e.clientY;
+function shuffleBoard() {
+    if (gameState.isProcessing) return;
+    generateBoard();
+    renderBoard();
+    showToast('Board Shuffled!');
 }
 
-function updateTouchPos(e) {
-    mouseX = e.touches[0].clientX;
-    mouseY = e.touches[0].clientY;
-}
-
-function createTrailParticle() {
-    if (gameState!== "playing") return;
-    if (Math.random() > 0.8) {
-        const particle = document.createElement('div');
-        particle.className = 'trail-particle';
-        particle.style.left = mouseX + 'px';
-        particle.style.top = mouseY + 'px';
-        document.body.appendChild(particle);
-        particles.push(particle);
-        setTimeout(() => {
-            particle.remove();
-            particles = particles.filter(p => p!== particle);
-        }, 800);
-    }
-    requestAnimationFrame(createTrailParticle);
-}
-
-/* =========================
-   📅 DAILY CHALLENGE
-========================= */
-
-function checkDailyChallenge() {
-    const today = new Date().toDateString();
-    const lastPlayed = localStorage.getItem("lastPlayedDate");
-    const existingBtn = document.getElementById('daily-btn');
-    if (existingBtn) existingBtn.remove();
-
-    if (lastPlayed!== today) {
-        const dailyBtn = document.createElement('button');
-        dailyBtn.id = 'daily-btn';
-        dailyBtn.className = 'btn-primary';
-        dailyBtn.innerHTML = '📅 Daily Challenge';
-        dailyBtn.onclick = startDailyChallenge;
-        dailyBtn.style.marginTop = '10px';
-        document.querySelector('.menu-buttons').appendChild(dailyBtn);
+function hint() {
+    if (gameState.isProcessing) return;
+    for (let row = 0; row < CONFIG.ROWS; row++) {
+        for (let col = 0; col < CONFIG.COLS; col++) {
+            if (col < CONFIG.COLS - 1) {
+                swapInArray(row, col, row, col + 1);
+                if (findMatches().length > 0) {
+                    swapInArray(row, col, row, col + 1);
+                    getTileElement(row, col)?.classList.add('selected');
+                    getTileElement(row, col + 1)?.classList.add('selected');
+                    setTimeout(() => {
+                        getTileElement(row, col)?.classList.remove('selected');
+                        getTileElement(row, col + 1)?.classList.remove('selected');
+                    }, 1000);
+                    return;
+                }
+                swapInArray(row, col, row, col + 1);
+            }
+        }
     }
 }
 
-function startDailyChallenge() {
-    const today = new Date().toDateString();
-    localStorage.setItem("lastPlayedDate", today);
-    level = new Date().getDate();
-    score = 0;
-    undoStack = [];
-    localStorage.setItem("level", level);
-    localStorage.setItem("score", score);
-    showGame();
-    startGame();
-}
-
-/* =========================
-   🌙 THEME SWITCHER
-========================= */
-
-function toggleTheme() {
-    isDarkMode =!isDarkMode;
-    localStorage.setItem("darkMode", isDarkMode);
-    applyTheme();
-}
-
-function applyTheme() {
-    document.documentElement.setAttribute('data-theme', isDarkMode? 'dark' : 'light');
-}
-
-/* =========================
-   🧘 ZEN MODE
-========================= */
-
-function toggleZenMode() {
-    zenMode =!zenMode;
-    localStorage.setItem("zenMode", zenMode);
-    showToast(zenMode? '🧘 Zen Mode ON - No Timer' : '🎮 Normal Mode ON');
-}
-
-/* =========================
-   🏆 ACHIEVEMENTS
-========================= */
-
-const ACHIEVEMENTS = {
-    first_win: { name: 'First Win', desc: 'Complete your first level', icon: '🎉' },
-    combo_5: { name: 'Combo Master', desc: 'Get a 5x combo', icon: '🔥' },
-    level_10: { name: 'Level 10', desc: 'Reach level 10', icon: '🏆' },
-    level_20: { name: 'Level 20', desc: 'Reach level 20', icon: '💎' },
-    score_1000: { name: '1000 Points', desc: 'Score 1000 points', icon: '💯' },
-    no_undo: { name: 'Perfect', desc: 'Complete level without undo', icon: '✨' }
-};
-
-function checkAchievement(type, value) {
-    let newAchievement = null;
-
-    if (type === 'game_start' && totalGames === 1 &&!achievements.includes('first_game')) {
-        newAchievement = 'first_game';
-    } else if (type === 'combo' && value >= 5 &&!achievements.includes('combo_5')) {
-        newAchievement = 'combo_5';
-    } else if (type === 'level_complete' && value === 10 &&!achievements.includes('level_10')) {
-        newAchievement = 'level_10';
-    } else if (type === 'level_complete' && value === 20 &&!achievements.includes('level_20')) {
-        newAchievement = 'level_20';
-    } else if (type === 'match' && score >= 1000 &&!achievements.includes('score_1000')) {
-        newAchievement = 'score_1000';
-    }
-
-    if (newAchievement) {
-        achievements.push(newAchievement);
-        localStorage.setItem("achievements", JSON.stringify(achievements));
-        showAchievementToast(ACHIEVEMENTS[newAchievement]);
+function restartGame() {
+    if (confirm('Restart current level?')) {
+        gameState.timeLeft = CONFIG.TIME_PER_LEVEL;
+        startLevel();
     }
 }
 
-function showAchievementToast(ach) {
+function showToast(message) {
     const toast = document.createElement('div');
-    toast.className = 'achievement-toast';
-    toast.innerHTML = `
-        <div class="ach-icon">${ach.icon}</div>
-        <div class="ach-text">
-            <b>Achievement Unlocked!</b>
-            <p>${ach.name}</p>
-        </div>
-    `;
+    toast.className = 'toast show';
+    toast.textContent = message;
     document.body.appendChild(toast);
-    setTimeout(() => toast.classList.add('show'), 100);
-    setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
+    setTimeout(() => toast.remove(), 2000);
 }
 
-function checkAchievements() {}
-
-/* =========================
-   📊 STATS
-========================= */
-
-function showStats() {
-    winMessage.style.display = "block";
-    winMessage.innerHTML = `
-        <h2>📊 Your Stats</h2>
-        <div class="stats-grid">
-            <div class="stat-item"><b>${totalGames}</b><span>Games Played</span></div>
-            <div class="stat-item"><b>${level}</b><span>Highest Level</span></div>
-            <div class="stat-item"><b>${bestScore}</b><span>Best Score</span></div>
-            <div class="stat-item"><b>X${maxCombo}</b><span>Best Combo</span></div>
-            <div class="stat-item"><b>${achievements.length}</b><span>Achievements</span></div>
-        </div>
-        <button class="btn-primary" onclick="winMessage.style.display='none'">Close</button>
-    `;
+// ========== SAVE/LOAD - FIXED CRASH ==========
+function saveProgress() {
+    try {
+        localStorage.setItem('vk_level', gameState.level);
+        localStorage.setItem('vk_score', gameState.score);
+        localStorage.setItem('vk_timeLeft', gameState.timeLeft);
+        localStorage.setItem('vk_savedBoard', JSON.stringify(gameState.board));
+    } catch (e) {
+        console.error('Save failed:', e);
+    }
 }
 
-/* =========================
-   🔔 TOAST
-========================= */
+function loadProgress() {
+    try {
+        gameState.level = parseInt(localStorage.getItem('vk_level') || '1');
+        gameState.score = parseInt(localStorage.getItem('vk_score') || '0');
+        gameState.timeLeft = parseInt(localStorage.getItem('vk_timeLeft') || CONFIG.TIME_PER_LEVEL);
 
-function showToast(msg) {
-    const toast = document.createElement('div');
-    toast.className = 'toast';
-    toast.innerText = msg;
-    document.body.appendChild(toast);
-    setTimeout(() => toast.classList.add('show'), 100);
-    setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 300);
-    }, 2000);
+        const savedBoard = localStorage.getItem('vk_savedBoard');
+        if (savedBoard) {
+            gameState.board = JSON.parse(savedBoard);
+        }
+    } catch (e) {
+        console.error('Load failed:', e);
+        // ✅ BUG FIX: Agar load fail ho to fresh start
+        gameState.level = 1;
+        gameState.score = 0;
+        gameState.timeLeft = CONFIG.TIME_PER_LEVEL;
+    }
 }
 
-/* =========================
-   🚀 INIT - BUG FIX
-========================= */
-
-const style = document.createElement('style');
-style.innerHTML = `
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  10%, 30%, 50%, 70%, 90% { transform: translateX(-3px); }
-  20%, 40%, 60%, 80% { transform: translateX(3px); }
-}
-@keyframes flash {
-  0%, 100% { filter: brightness(1); }
-  50% { filter: brightness(1.3); }
-}
-@keyframes comboPop {
-  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
-  50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
-  100% { opacity: 0; transform: translate(-50%, -50%) scale(2); }
-}
-@keyframes particleFade {
-  to { opacity: 0; transform: scale(0); }
-}
-@keyframes popupIn {
-  from { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
-  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-}
-`;
-document.head.appendChild(style);
-
-applyTheme();
-
-const btnContainer = document.createElement('div');
-btnContainer.style.display = 'flex';
-btnContainer.style.gap = '10px';
-btnContainer.style.marginTop = '10px';
-btnContainer.style.flexWrap = 'wrap';
-
-const themeBtn = document.createElement('button');
-themeBtn.className = 'btn-ghost';
-themeBtn.innerHTML = isDarkMode? '☀️ Light' : '🌙 Dark';
-themeBtn.onclick = () => {
-    toggleTheme();
-    themeBtn.innerHTML = isDarkMode? '☀️ Light' : '🌙 Dark';
-};
-
-const zenBtn = document.createElement('button');
-zenBtn.className = 'btn-ghost';
-zenBtn.innerHTML = zenMode? '🎮 Normal' : '🧘 Zen';
-zenBtn.onclick = () => {
-    toggleZenMode();
-    zenBtn.innerHTML = zenMode? '🎮 Normal' : '🧘 Zen';
-};
-
-const statsBtn = document.createElement('button');
-statsBtn.className = 'btn-ghost';
-statsBtn.innerHTML = '📊 Stats';
-statsBtn.onclick = showStats;
-
-const undoBtn = document.createElement('button');
-undoBtn.className = 'btn-ghost';
-undoBtn.innerHTML = '↩️ Undo';
-undoBtn.onclick = undoMove;
-undoBtn.style.display = 'none';
-undoBtn.id = 'undo-btn';
-
-btnContainer.appendChild(themeBtn);
-btnContainer.appendChild(zenBtn);
-btnContainer.appendChild(statsBtn);
-
-// BUG FIX: DOM ready check
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initGame);
-} else {
-    initGame();
+function clearSave() {
+    try {
+        localStorage.removeItem('vk_level');
+        localStorage.removeItem('vk_score');
+        localStorage.removeItem('vk_timeLeft');
+        localStorage.removeItem('vk_savedBoard');
+    } catch (e) {
+        console.error('Clear save failed:', e);
+    }
 }
 
-function initGame() {
-    showMenu();
-    setTimeout(() => {
-        document.querySelector('.menu-buttons')?.appendChild(btnContainer);
-        document.querySelector('.controls')?.appendChild(undoBtn);
-    }, 100);
-}
-
-const originalShowGame = showGame;
-showGame = function() {
-    originalShowGame();
-    document.getElementById('undo-btn').style.display = 'block';
-};
+// Auto-save every 10 seconds
+setInterval(() => {
+    if (gameContainerEl?.style.display!== 'none') {
+        saveProgress();
+    }
+}, 10000);

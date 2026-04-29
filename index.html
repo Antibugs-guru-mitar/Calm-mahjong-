@@ -2,63 +2,76 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"> <!-- ✅ FIX 1: Zoom band -->
-    <title>MatchMaster - Vita Killer Light</title> <!-- ✅ FIX 2: Title update -->
-    
-    <!-- ✅ FIX 3: CSS ke hisab se fonts - Quicksand + Cinzel dono -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&family=Cinzel:wght@700&display=swap" rel="stylesheet">
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0a0e1a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Vita Killer Pro Max Ultimate</title>
     <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
-    <!-- PHASE 12: DOOR ANIMATION - ✅ YE THEEK HAI -->
+    <!-- ========== DOOR ANIMATION - JS SE CONTROL ========== -->
     <div class="door-left"></div>
     <div class="door-right"></div>
 
-    <!-- 🧠 MENU SCREEN - ✅ YE THEEK HAI -->
-    <div id="menu-screen" class="menu-screen">
-        <div class="menu-box">
-            <div class="logo">🀄</div>
-            <h1>MatchMaster</h1> <!-- ✅ FIX 4: Calm Mahjong → MatchMaster -->
-            <p class="subtitle">Vita Killer Light Edition</p> <!-- ✅ FIX 5: Subtitle update -->
-            <div class="menu-buttons">
-                <button class="btn-primary" onclick="newGame()">🎮 New Game</button>
-                <button class="btn-secondary" onclick="continueGame()" id="continue-btn" style="display:none;">▶ Continue</button>
-                <!-- UPGRADE: DAILY CHALLENGE BUTTON - JS SE AUTO ADD HOGA -->
-                <!-- UPGRADE: THEME + ZEN + STATS BUTTON - JS SE AUTO ADD HOGA -->
-                <button class="btn-ghost" onclick="resetProgress()">♻ Reset Progress</button>
-            </div>
+    <!-- ========== MENU SCREEN ========== -->
+    <div id="menu-screen">
+        <h1 class="menu-title">VITA KILLER<br>PRO MAX ULTIMATE</h1>
+        <div class="menu-buttons">
+            <button class="btn-primary" onclick="newGame()">NEW GAME</button>
+            <button class="btn-primary" id="continue-btn" onclick="continueGame()" style="display: none;">CONTINUE</button>
+            <button class="btn-ghost" onclick="resetProgress()">RESET PROGRESS</button>
         </div>
+        <p style="margin-top: 2rem; color: var(--text-secondary); font-size: 0.9rem;">
+            Match 3 Tiles to Crush | 100 Levels | 20 Min Each
+        </p>
     </div>
 
-    <!-- 🎮 GAME - ✅ YE THEEK HAI -->
-    <div class="game-container" id="game-container" style="display:none;">
-        <div class="game-header">
-            <h1>MatchMaster</h1> <!-- ✅ FIX 6: Calm Mahjong → MatchMaster -->
-            <div class="info">
-                <div class="stat"><span>Level</span><b id="level">1</b></div>
-                <div class="stat"><span>Score</span><b id="score">0</b></div>
-                <div class="stat"><span>Best</span><b id="best-score">0</b></div>
+    <!-- ========== GAME CONTAINER ========== -->
+    <div id="game-container">
+        
+        <!-- ===== GAME HEADER - SS JESA ===== -->
+        <header class="game-header">
+            <div class="header-left">
+                <div class="stat-box">
+                    <span class="stat-label">LEVEL</span>
+                    <span class="stat-value" id="level">1</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-label">SCORE</span>
+                    <span class="stat-value" id="score">0</span>
+                </div>
             </div>
-        </div>
 
-        <div id="game-board" class="board"></div>
-        <div id="achievement-bar"></div>
+            <div class="header-center">
+                <div id="timer-display">⏱️ 20:00</div>
+            </div>
 
-        <div class="controls">
-            <button class="btn-icon" onclick="restartGame()" title="Restart Level">🔄</button>
-            <button class="btn-icon" onclick="hint()" title="Hint">💡</button>
-            <button class="btn-icon" onclick="shuffleBoard()" title="Shuffle">🔀</button>
-            <!-- UPGRADE: UNDO BUTTON - JS SE AUTO ADD HOGA -->
-            <button class="btn-icon" onclick="showMenu()" title="Main Menu">🏠</button>
-        </div>
+            <div class="header-right">
+                <div class="stat-box">
+                    <span class="stat-label">BEST</span>
+                    <span class="stat-value" id="best-score">0</span>
+                </div>
+            </div>
+        </header>
 
-        <div id="win-message" class="win-popup" style="display:none;"></div>
+        <!-- ===== GAME BOARD - 10x8 GRID ===== -->
+        <main id="game-board"></main>
+
+        <!-- ===== GAME FOOTER ===== -->
+        <footer class="game-footer">
+            <button class="footer-btn" onclick="hint()">💡 HINT</button>
+            <button class="footer-btn" onclick="shuffleBoard()">🔄 SHUFFLE</button>
+            <button class="footer-btn" onclick="restartGame()">🔃 RESTART</button>
+            <button class="footer-btn" onclick="showMenu()">🏠 MENU</button>
+        </footer>
+
     </div>
 
+    <!-- ========== WIN/LOSE POPUP ========== -->
+    <div id="win-message"></div>
+
+    <!-- ========== JS LOAD - LAST MEIN ========== -->
     <script src="script.js"></script>
 </body>
 </html>

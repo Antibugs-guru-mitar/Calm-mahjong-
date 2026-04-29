@@ -6,11 +6,12 @@
     <meta name="theme-color" content="#0a0e1a">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
     <title>Vita Killer Pro Max Ultimate</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- ========== DOOR ANIMATION - JS SE CONTROL ========== -->
+    <!-- ========== 3D DOORS - JS SE CONTROL ========== -->
     <div class="door-left"></div>
     <div class="door-right"></div>
 
@@ -22,15 +23,15 @@
             <button class="btn-primary" id="continue-btn" onclick="continueGame()" style="display: none;">CONTINUE</button>
             <button class="btn-ghost" onclick="resetProgress()">RESET PROGRESS</button>
         </div>
-        <p style="margin-top: 2rem; color: var(--text-secondary); font-size: 0.9rem;">
-            Match 3 Tiles to Crush | 100 Levels | 20 Min Each
+        <p style="margin-top: 2rem; color: var(--text-secondary); font-size: 0.9rem; text-align: center;">
+            Swipe to Crush 3+ Balls | Score Target to Win<br>20 Min Deadline Per Level
         </p>
     </div>
 
     <!-- ========== GAME CONTAINER ========== -->
     <div id="game-container">
         
-        <!-- ===== GAME HEADER - SS JESA ===== -->
+        <!-- ===== GAME HEADER ===== -->
         <header class="game-header">
             <div class="header-left">
                 <div class="stat-box">
@@ -40,6 +41,10 @@
                 <div class="stat-box">
                     <span class="stat-label">SCORE</span>
                     <span class="stat-value" id="score">0</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-label">TARGET</span>
+                    <span class="stat-value" id="target-score">3000</span>
                 </div>
             </div>
 
@@ -55,7 +60,7 @@
             </div>
         </header>
 
-        <!-- ===== GAME BOARD - 10x8 GRID ===== -->
+        <!-- ===== GAME BOARD - 10x8 3D BALLS ===== -->
         <main id="game-board"></main>
 
         <!-- ===== GAME FOOTER ===== -->

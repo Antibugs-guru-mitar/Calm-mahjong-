@@ -1,191 +1,346 @@
+:root {
+  --bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --glass: rgba(255, 255, 255, 0.15);
+  --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  --text: #ffffff;
+  --tile-bg: rgba(255, 255, 255, 0.9);
+  --primary: #667eea;
+  --tile-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Quicksand', Arial, sans-serif; /* HTML mein Quicksand link hai */
 }
 
 body {
-    background: linear-gradient(135deg, #dfe9f3, #ffffff);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
+  background: var(--bg);
+  background-attachment: fixed;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+  color: var(--text);
 }
 
 /* =========================
-   🧠 MENU SCREEN (FIXED)
+   🧠 MENU SCREEN - PHASE 7
 ========================= */
 
 .menu-screen {
-    position: absolute;
-    inset: 0;
-    background: rgba(255,255,255,0.95);
-    display: flex;
-    justify-content: center;
-    align-items: center;
+  position: fixed; /* HTML ke hisab se full screen */
+  inset: 0;
+  background: var(--bg); /* Purana white hataya, gradient */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
 }
 
 .menu-box {
-    text-align: center;
-    padding: 25px;
-    border-radius: 16px;
-    background: white;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.12);
-    width: 85%;
-    max-width: 400px;
+  text-align: center;
+  padding: 40px 30px;
+  border-radius: 24px;
+  background: var(--glass);
+  backdrop-filter: blur(12px);
+  box-shadow: var(--shadow);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  width: 85%;
+  max-width: 400px;
+  animation: fadeIn 0.5s ease;
+}
+
+.logo { 
+  font-size: 60px; 
+  margin-bottom: 10px; 
+  animation: float 3s ease-in-out infinite; 
 }
 
 .menu-box h1 {
-    font-size: 28px;
-    margin-bottom: 10px;
+  font-size: 32px;
+  margin-bottom: 8px;
+  font-weight: 700;
+  color: var(--text);
 }
 
-.menu-box p {
-    margin-bottom: 20px;
-    color: #666;
+.subtitle {
+  margin-bottom: 30px;
+  color: var(--text);
+  opacity: 0.8;
+  font-size: 16px;
 }
 
-.menu-buttons button {
-    display: block;
-    width: 100%;
-    margin: 8px 0;
+.menu-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
+
+/* PHASE 7 BUTTONS - HTML classes ke hisab se */
+.btn-primary, .btn-secondary, .btn-ghost {
+  display: block;
+  width: 100%;
+  padding: 14px 20px;
+  margin: 0;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 16px;
+  transition: all 0.2s ease;
+}
+
+.btn-primary { 
+  background: var(--text); 
+  color: var(--primary); 
+}
+.btn-primary:active { transform: scale(0.96); }
+
+.btn-secondary { 
+  background: var(--glass); 
+  color: var(--text); 
+  border: 1px solid rgba(255,255,255,0.3); 
+}
+
+.btn-ghost { 
+  background: transparent; 
+  color: var(--text); 
+  opacity: 0.7; 
+}
+
+button:hover { transform: translateY(-2px); }
 
 /* =========================
-   🎮 GAME CONTAINER
+   🎮 GAME CONTAINER - PHASE 7
 ========================= */
 
 .game-container {
-    text-align: center;
-    background: #ffffff;
-    padding: 22px;
-    border-radius: 16px;
-    width: 92%;
-    max-width: 520px;
-    box-shadow: 0 12px 30px rgba(0,0,0,0.12);
-    position: relative;
+  text-align: center;
+  background: transparent; /* Purana white hataya */
+  padding: 0;
+  border-radius: 16px;
+  width: 92%;
+  max-width: 520px;
+  box-shadow: none; /* Glass effect header mein */
+  position: relative;
+  animation: fadeIn 0.5s ease;
 }
 
-/* Title */
-h1 {
-    margin-bottom: 10px;
-    color: #222;
-    letter-spacing: 1px;
-    font-size: 26px;
+/* GAME HEADER - NAYA HTML STRUCTURE */
+.game-header {
+  background: var(--glass);
+  backdrop-filter: blur(12px);
+  border-radius: 20px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow);
 }
 
-/* Info */
+.game-header h1 {
+  margin-bottom: 0;
+  color: var(--text);
+  letter-spacing: 1px;
+  font-size: 26px;
+}
+
+/* Info - NAYA STRUCTURE .stat ke saath */
 .info {
-    margin-bottom: 15px;
-    font-size: 15px;
-    color: #333;
-    display: flex;
-    justify-content: space-between;
-    font-weight: bold;
-    padding: 0 10px;
+  margin-top: 15px;
+  font-size: 15px;
+  color: var(--text);
+  display: flex;
+  justify-content: space-around;
+  font-weight: bold;
+  padding: 0 10px;
+}
+
+.stat { 
+  display: flex; 
+  flex-direction: column; 
+}
+.stat span { 
+  font-size: 12px; 
+  opacity: 0.7; 
+}
+.stat b { 
+  font-size: 24px; 
+  font-weight: 700; 
 }
 
 /* Board */
 .board {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 8px;
-    margin: 20px 0;
-    min-height: 320px;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;
+  margin: 20px 0;
+  min-height: 320px;
 }
 
-/* Tiles */
+/* Tiles - EMOJI HI HAIN LALA TENSION NA LE 🍎✅ */
 .tile {
-    background: #f5f5f5;
-    border-radius: 12px;
-    height: 52px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-    font-size: 22px;
-    user-select: none;
-    transition: transform 0.15s ease, background 0.2s ease, opacity 0.2s ease;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+  background: var(--tile-bg);
+  border-radius: 12px;
+  aspect-ratio: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  font-size: 28px; /* Thora bara kiya */
+  user-select: none;
+  transition: all 0.1s ease;
+  box-shadow: var(--tile-shadow);
 }
 
 .tile:hover {
-    transform: scale(1.07);
+  transform: scale(1.07);
 }
 
 .tile:active {
-    transform: scale(0.92);
+  transform: scale(0.92);
+}
+
+/* PHASE 7: selected class JS se aati hai */
+.tile.selected { 
+  box-shadow: 0 0 0 3px var(--primary), var(--tile-shadow);
+  transform: scale(0.95);
 }
 
 .tile.matched {
-    opacity: 0.35;
-    transform: scale(0.95);
+  opacity: 0.35;
+  transform: scale(0.95);
+  pointer-events: none; /* Click na ho */
 }
 
-/* Buttons */
-.controls button {
-    padding: 10px 14px;
-    margin: 5px;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    background: linear-gradient(135deg, #4a90e2, #357ab7);
-    color: white;
-    transition: 0.25s;
-    font-weight: bold;
+/* Controls - PHASE 7: btn-icon class */
+.controls {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
 }
 
-.controls button:hover {
-    transform: scale(1.05);
-    filter: brightness(1.1);
+.btn-icon {
+  padding: 0;
+  margin: 0;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  cursor: pointer;
+  background: var(--glass);
+  backdrop-filter: blur(12px);
+  color: var(--text);
+  border: 1px solid rgba(255,255,255,0.2);
+  font-size: 20px;
+  transition: 0.25s;
+  font-weight: bold;
+}
+
+.btn-icon:hover {
+  transform: scale(1.05);
+  filter: brightness(1.1);
 }
 
 /* =========================
-   🏆 WIN SCREEN (SAFE FIX)
+   🏆 WIN SCREEN - PHASE 7
 ========================= */
 
-#win-message {
-    margin-top: 18px;
-    padding: 22px;
-    background: linear-gradient(135deg, #e6ffe6, #ffffff);
-    border-radius: 14px;
-    box-shadow: 0 12px 30px rgba(0,0,0,0.15);
-    animation: pop 0.3s ease;
+.win-popup {
+  position: fixed;
+  top: 50%; 
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--glass);
+  backdrop-filter: blur(20px);
+  padding: 30px;
+  border-radius: 20px;
+  box-shadow: var(--shadow);
+  text-align: center;
+  z-index: 200;
+  border: 1px solid rgba(255,255,255,0.2);
+  width: 90%;
+  max-width: 350px;
 }
 
-#win-message h2 {
-    color: #1b5e20;
-    margin-bottom: 8px;
+.win-popup h2 {
+  color: var(--text);
+  margin-bottom: 12px;
+  font-size: 24px;
 }
 
-/* Animation */
-@keyframes pop {
-    from { transform: scale(0.75); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
+.win-popup p {
+  color: var(--text);
+  opacity: 0.9;
+  margin-bottom: 20px;
+}
+
+/* Win popup ke buttons */
+.win-popup .btn-primary {
+  margin: 5px;
+  width: auto;
+  display: inline-block;
+  padding: 12px 24px;
+}
+
+.win-popup .btn-ghost {
+  margin: 5px;
+  width: auto;
+  display: inline-block;
+  padding: 12px 24px;
 }
 
 /* Achievement */
 #achievement-bar {
-    font-size: 13px;
-    color: #1b5e20;
-    margin-top: 6px;
-    font-weight: bold;
+  font-size: 13px;
+  color: var(--text);
+  margin-top: 6px;
+  font-weight: bold;
+  opacity: 0.8;
+}
+
+/* =========================
+   ANIMATIONS - PHASE 7
+========================= */
+
+@keyframes fadeIn { 
+  from { opacity: 0; transform: translateY(10px); } 
+  to { opacity: 1; transform: translateY(0); } 
+}
+
+@keyframes float { 
+  0%, 100% { transform: translateY(0); } 
+  50% { transform: translateY(-10px); } 
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
 }
 
 /* 📱 MOBILE */
 @media (max-width: 500px) {
-    .board {
-        grid-template-columns: repeat(4, 1fr);
-    }
+  .board {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
 
-    .tile {
-        height: 48px;
-        font-size: 20px;
-    }
+  .tile {
+    font-size: 24px;
+  }
 
-    .controls button {
-        padding: 8px 10px;
-        font-size: 12px;
-    }
+  .btn-icon {
+    width: 45px;
+    height: 45px;
+    font-size: 18px;
+  }
+  
+  .menu-box {
+    padding: 30px 20px;
+  }
+  
+  .game-header {
+    padding: 15px;
+  }
 }

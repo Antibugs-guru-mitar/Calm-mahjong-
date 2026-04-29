@@ -7,6 +7,10 @@ const menuScreen = document.getElementById("menu-screen");
 const gameContainer = document.getElementById("game-container");
 const continueBtn = document.getElementById("continue-btn");
 
+// PHASE 12: DOOR ELEMENTS
+const doorLeft = document.querySelector('.door-left');
+const doorRight = document.querySelector('.door-right');
+
 // 🎮 GAME STATE
 let gameState = "menu";
 
@@ -15,28 +19,38 @@ let level = parseInt(localStorage.getItem("level")) || 1;
 let score = parseInt(localStorage.getItem("score")) || 0;
 let bestScore = parseInt(localStorage.getItem("bestScore")) || 0;
 
-// PHASE 9 VARIABLES
+// PHASE 12 VARIABLES
 let firstTile = null;
 let matchedTiles = 0;
 let totalTiles = 0;
-let combo = 0; // UPGRADE 3: COMBO
-let lastMatchTime = 0; // UPGRADE 3: COMBO
-let timerInterval = null; // UPGRADE 4: TIMER
-let timeLeft = 60; // UPGRADE 4: TIMER
-let isDarkMode = localStorage.getItem("darkMode") === "true"; // UPGRADE 7: THEME
+let combo = 0;
+let lastMatchTime = 0;
+let timerInterval = null;
+let timeLeft = 60;
+let isDarkMode = localStorage.getItem("darkMode") === "true";
+let maxCombo = parseInt(localStorage.getItem("maxCombo")) || 0; // UPGRADE: STATS
+let totalGames = parseInt(localStorage.getItem("totalGames")) || 0; // UPGRADE: STATS
+let undoStack = []; // UPGRADE: UNDO
+let zenMode = localStorage.getItem("zenMode") === "true"; // UPGRADE: ZEN MODE
+let achievements = JSON.parse(localStorage.getItem("achievements")) || []; // UPGRADE: ACHIEVEMENT
 
-// 🧩 Base tiles - EMOJI HI RAKHE HAIN LALA TENSION NA LE 😂✅
-const base = ["🍎","🍌","🍇","🍒","🍉","🍍","🥝","🍓"];
+// 🧩 Base tiles
+const base = ["🍎","🍌","🍇","🍒","🍉","🍍","🥝","🍓","🥭","🍑","🍐","🥥"];
 
-// Shuffle
+// BUG FIX 2: BETTER SHUFFLE
 function shuffle(array) {
-    return array.sort(() => Math.random() - 0.5);
+    let arr = [...array];
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
 }
 
-// Level generator
+// BUG FIX 2: MAHJONG FEEL - Kam pairs
 function getLevelTiles(level) {
     let tiles = [];
-    let pairs = Math.min(6 + level * 2, 24);
+    let pairs = Math.min(4 + level, 20); // PEHLE 6+level*2 tha
     for (let i = 0; i < pairs; i++) {
         let item = base[i % base.length];
         tiles.push(item, item);
@@ -45,24 +59,46 @@ function getLevelTiles(level) {
 }
 
 /* =========================
-   🧠 SCREEN CONTROL
+   🧠 SCREEN CONTROL + DOOR
 ========================= */
 
 function showGame() {
-    menuScreen.style.display = "none";
-    gameContainer.style.display = "block";
-    startParticleTrail(); // UPGRADE 5: PARTICLE START
+    // PHASE 12: DOOR ANIMATION
+    openDoor(() => {
+        menuScreen.style.display = "none";
+        gameContainer.style.display = "block";
+        startParticleTrail();
+        closeDoor();
+    });
 }
 
 function showMenu() {
     gameState = "menu";
-    menuScreen.style.display = "flex";
-    gameContainer.style.display = "none";
-    board.innerHTML = "";
-    stopTimer(); // UPGRADE 4: TIMER STOP
-    stopParticleTrail(); // UPGRADE 5: PARTICLE STOP
-    checkContinueButton();
-    checkDailyChallenge(); // UPGRADE 6: DAILY CHECK
+    openDoor(() => {
+        menuScreen.style.display = "flex";
+        gameContainer.style.display = "none";
+        board.innerHTML = "";
+        stopTimer();
+        stopParticleTrail();
+        checkContinueButton();
+        checkDailyChallenge();
+        checkAchievements();
+        closeDoor();
+    });
+}
+
+// PHASE 12: DOOR ANIMATION
+function openDoor(callback) {
+    doorLeft.classList.add('open');
+    doorRight.classList.add('open');
+    setTimeout(callback, 800);
+}
+
+function closeDoor() {
+    setTimeout(() => {
+        doorLeft.classList.remove('open');
+        doorRight.classList.remove('open');
+    }, 300);
 }
 
 /* =========================
@@ -73,6 +109,9 @@ function newGame() {
     level = 1;
     score = 0;
     combo = 0;
+    undoStack = [];
+    totalGames++;
+    localStorage.setItem("totalGames", totalGames);
     localStorage.setItem("level", level);
     localStorage.setItem("score", score);
     localStorage.removeItem("savedBoard");
@@ -84,6 +123,7 @@ function newGame() {
 function continueGame() {
     const savedBoard = JSON.parse(localStorage.getItem("savedBoard"));
     const savedMatched = parseInt(localStorage.getItem("savedMatched")) || 0;
+    undoStack = [];
     showGame();
     startGame(savedBoard, savedMatched);
 }
@@ -113,6 +153,7 @@ function startGame(savedBoard = null, savedMatched = 0) {
     matchedTiles = savedMatched;
     firstTile = null;
     combo = 0;
+    undoStack = [];
 
     scoreText.innerText = score;
     levelText.innerText = level;
@@ -140,16 +181,19 @@ function startGame(savedBoard = null, savedMatched = 0) {
         board.appendChild(tile);
     });
 
-    // UPGRADE 4: TIMER MODE - Level 5 ke baad
-    if (level >= 5 &&!savedBoard) {
+    // BUG FIX 1: DYNAMIC TIMER + ZEN MODE CHECK
+    if (level >= 5 &&!savedBoard &&!zenMode) {
+        timeLeft = 60 + (level - 5) * 10; // Level 5=60s, 6=70s...
+        timeLeft = Math.min(timeLeft, 180); // Max 3 min
         startTimer();
     }
 
     saveCurrentBoard();
+    checkAchievement('game_start');
 }
 
 /* =========================
-   🎮 TILE LOGIC
+   🎮 TILE LOGIC + UNDO
 ========================= */
 
 function handleTileClick(tile) {
@@ -157,14 +201,19 @@ function handleTileClick(tile) {
     if (tile.classList.contains("matched")) return;
     if (tile === firstTile) return;
 
+    // UPGRADE: HAPTIC FEEDBACK
+    if (navigator.vibrate) navigator.vibrate(30);
+
     if (!firstTile) {
         firstTile = tile;
         tile.classList.add("selected");
         return;
     }
 
+    // UPGRADE: UNDO - Save state before match
+    saveUndoState();
+
     if (firstTile.innerText === tile.innerText) {
-        // UPGRADE 3: COMBO SYSTEM 🔥
         const now = Date.now();
         if (now - lastMatchTime < 2000) {
             combo++;
@@ -178,13 +227,14 @@ function handleTileClick(tile) {
         tile.classList.add("matched");
         firstTile.classList.remove("selected");
 
-        // UPGRADE 2: TILE POP ANIMATION - CSS handle karega
-
-        score += 10 * comboMultiplier; // Combo se score
+        score += 10 * comboMultiplier;
         matchedTiles += 2;
 
-        // COMBO TEXT
         if (combo > 1) showComboText(comboMultiplier);
+        if (combo > maxCombo) {
+            maxCombo = combo;
+            localStorage.setItem("maxCombo", maxCombo);
+        }
 
         if (score > bestScore) {
             bestScore = score;
@@ -195,33 +245,76 @@ function handleTileClick(tile) {
         localStorage.setItem("score", score);
         scoreText.innerText = score;
 
+        checkAchievement('combo', combo);
+        checkAchievement('match');
+
         if (matchedTiles === totalTiles) {
             gameState = "win";
-            stopTimer(); // UPGRADE 4: TIMER STOP
+            stopTimer();
             localStorage.removeItem("savedBoard");
             localStorage.removeItem("savedMatched");
-            playVictoryJashan(); // UPGRADE 1: JHATKA + CONFETTI
+            playVictoryJashan();
+            checkAchievement('level_complete', level);
 
             setTimeout(() => {
                 winMessage.style.display = "block";
                 winMessage.innerHTML = `
                     <h2>🎉 Level ${level} Complete!</h2>
                     <p>Score: ${score}</p>
-                    ${combo > 1? `<p>Max Combo: X${combo} 🔥</p>` : ''}
+                    ${combo > 1? `<p>Max Combo: X${maxCombo} 🔥</p>` : ''}
+                    ${!zenMode? `<p>Time: ${60 + (level - 5) * 10 - timeLeft}s</p>` : ''}
                     <button class="btn-primary" onclick="nextLevel()">Next Level</button>
                     <button class="btn-ghost" onclick="showMenu()">Main Menu</button>
                 `;
             }, 400);
         }
     } else {
-        combo = 0; // Combo toot gaya
+        combo = 0;
         firstTile.classList.remove("selected");
         tile.style.animation = "shake 0.3s";
         setTimeout(() => tile.style.animation = "", 300);
+        undoStack.pop(); // Wrong move, remove from undo
     }
 
     firstTile = null;
     saveCurrentBoard();
+}
+
+/* =========================
+   ↩️ UPGRADE: UNDO MOVE
+========================= */
+
+function saveUndoState() {
+    const state = {
+        board: board.innerHTML,
+        score: score,
+        combo: combo,
+        matchedTiles: matchedTiles
+    };
+    undoStack.push(state);
+    if (undoStack.length > 3) undoStack.shift(); // Max 3 undo
+}
+
+function undoMove() {
+    if (undoStack.length === 0) return;
+    if (gameState!== "playing") return;
+
+    const state = undoStack.pop();
+    board.innerHTML = state.board;
+    score = state.score;
+    combo = state.combo;
+    matchedTiles = state.matchedTiles;
+
+    scoreText.innerText = score;
+
+    // Re-add event listeners
+    board.querySelectorAll('.tile').forEach(tile => {
+        if (!tile.classList.contains('matched')) {
+            tile.addEventListener("click", () => handleTileClick(tile));
+        }
+    });
+
+    showToast('↩️ Move Undone!');
 }
 
 /* =========================
@@ -254,6 +347,9 @@ function resetProgress() {
     score = 0;
     bestScore = 0;
     combo = 0;
+    maxCombo = 0;
+    totalGames = 0;
+    achievements = [];
     board.innerHTML = "";
     winMessage.style.display = "none";
     stopTimer();
@@ -286,6 +382,7 @@ function hint() {
 
 function shuffleBoard() {
     if (gameState!== "playing") return;
+    saveUndoState();
     const tiles = Array.from(board.children);
     const symbols = tiles.map(t => t.innerText);
     const shuffledSymbols = shuffle(symbols);
@@ -325,20 +422,16 @@ function checkContinueButton() {
 }
 
 /* =========================
-   🎉 UPGRADE 1: VICTORY JASHAN - NO AUDIO
+   🎉 VICTORY JASHAN
 ========================= */
 
 function playVictoryJashan() {
-    // 1. SCREEN JHATKA 📳
     gameContainer.style.animation = "shake 0.5s";
     setTimeout(() => gameContainer.style.animation = "", 500);
-
-    // 2. BOARD FLASH
     board.style.animation = "flash 0.3s";
     setTimeout(() => board.style.animation = "", 300);
-
-    // 3. PHOOL/CONFETTI GIRAO 🌸
     launchConfetti();
+    if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
 }
 
 function launchConfetti() {
@@ -359,9 +452,7 @@ function createConfettiPiece(color) {
     confetti.style.borderRadius = '50%';
     confetti.style.zIndex = '999';
     confetti.style.pointerEvents = 'none';
-
     document.body.appendChild(confetti);
-
     const animation = confetti.animate([
         { transform: 'translateY(0) rotate(0deg)', opacity: 1 },
         { transform: `translateY(100vh) rotate(${Math.random() * 720}deg)`, opacity: 0 }
@@ -369,37 +460,26 @@ function createConfettiPiece(color) {
         duration: Math.random() * 3000 + 2000,
         easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)'
     });
-
     animation.onfinish = () => confetti.remove();
 }
 
 /* =========================
-   🔥 UPGRADE 3: COMBO TEXT
+   🔥 COMBO TEXT
 ========================= */
 
 function showComboText(x) {
     const comboDiv = document.createElement('div');
+    comboDiv.className = 'combo-text';
     comboDiv.innerText = `COMBO X${x}! 🔥`;
-    comboDiv.style.position = 'fixed';
-    comboDiv.style.top = '50%';
-    comboDiv.style.left = '50%';
-    comboDiv.style.transform = 'translate(-50%, -50%)';
-    comboDiv.style.fontSize = '40px';
-    comboDiv.style.fontWeight = '700';
-    comboDiv.style.color = '#ff6b6b';
-    comboDiv.style.zIndex = '999';
-    comboDiv.style.pointerEvents = 'none';
-    comboDiv.style.animation = 'comboPop 1s forwards';
     document.body.appendChild(comboDiv);
     setTimeout(() => comboDiv.remove(), 1000);
 }
 
 /* =========================
-   ⏱️ UPGRADE 4: TIMER MODE
+   ⏱️ TIMER MODE - BUG FIX 1
 ========================= */
 
 function startTimer() {
-    timeLeft = 60;
     updateTimerDisplay();
     timerInterval = setInterval(() => {
         timeLeft--;
@@ -422,17 +502,18 @@ function updateTimerDisplay() {
     if (!timerEl) {
         timerEl = document.createElement('div');
         timerEl.id = 'timer-display';
-        timerEl.style.position = 'fixed';
-        timerEl.style.top = '20px';
-        timerEl.style.right = '20px';
-        timerEl.style.fontSize = '24px';
-        timerEl.style.fontWeight = '700';
-        timerEl.style.color = timeLeft < 10? '#ff0000' : '#ffffff';
-        timerEl.style.zIndex = '100';
         document.body.appendChild(timerEl);
     }
     timerEl.innerText = `⏱️ ${timeLeft}s`;
-    timerEl.style.color = timeLeft < 10? '#ff0000' : '#ffffff';
+    if (timeLeft < 10) {
+        timerEl.classList.add('danger');
+        timerEl.classList.remove('warning');
+    } else if (timeLeft < 20) {
+        timerEl.classList.add('warning');
+        timerEl.classList.remove('danger');
+    } else {
+        timerEl.classList.remove('warning', 'danger');
+    }
 }
 
 function gameOver() {
@@ -449,7 +530,7 @@ function gameOver() {
 }
 
 /* =========================
-   ✨ UPGRADE 5: PARTICLE TRAIL
+   ✨ PARTICLE TRAIL
 ========================= */
 
 let particles = [];
@@ -480,7 +561,6 @@ function updateTouchPos(e) {
 
 function createTrailParticle() {
     if (gameState!== "playing") return;
-
     if (Math.random() > 0.7) {
         const particle = document.createElement('div');
         particle.className = 'trail-particle';
@@ -488,7 +568,6 @@ function createTrailParticle() {
         particle.style.top = mouseY + 'px';
         document.body.appendChild(particle);
         particles.push(particle);
-
         setTimeout(() => {
             particle.remove();
             particles = particles.filter(p => p!== particle);
@@ -498,15 +577,18 @@ function createTrailParticle() {
 }
 
 /* =========================
-   📅 UPGRADE 6: DAILY CHALLENGE
+   📅 DAILY CHALLENGE
 ========================= */
 
 function checkDailyChallenge() {
     const today = new Date().toDateString();
     const lastPlayed = localStorage.getItem("lastPlayedDate");
+    const existingBtn = document.getElementById('daily-btn');
+    if (existingBtn) existingBtn.remove();
 
     if (lastPlayed!== today) {
         const dailyBtn = document.createElement('button');
+        dailyBtn.id = 'daily-btn';
         dailyBtn.className = 'btn-primary';
         dailyBtn.innerHTML = '📅 Daily Challenge';
         dailyBtn.onclick = startDailyChallenge;
@@ -516,11 +598,11 @@ function checkDailyChallenge() {
 }
 
 function startDailyChallenge() {
-    // Seed based on date for same board daily
     const today = new Date().toDateString();
     localStorage.setItem("lastPlayedDate", today);
-    level = new Date().getDate(); // Date = Level
+    level = new Date().getDate();
     score = 0;
+    undoStack = [];
     localStorage.setItem("level", level);
     localStorage.setItem("score", score);
     showGame();
@@ -528,7 +610,7 @@ function startDailyChallenge() {
 }
 
 /* =========================
-   🌙 UPGRADE 7: THEME SWITCHER
+   🌙 THEME SWITCHER
 ========================= */
 
 function toggleTheme() {
@@ -538,13 +620,109 @@ function toggleTheme() {
 }
 
 function applyTheme() {
-    if (isDarkMode) {
-        document.documentElement.style.setProperty('--bg', 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)');
-        document.documentElement.style.setProperty('--tile-bg', 'rgba(255, 255, 255, 0.1)');
-    } else {
-        document.documentElement.style.setProperty('--bg', 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)');
-        document.documentElement.style.setProperty('--tile-bg', 'rgba(255, 255, 255, 0.9)');
+    document.documentElement.setAttribute('data-theme', isDarkMode? 'dark' : 'light');
+}
+
+/* =========================
+   🧘 UPGRADE: ZEN MODE
+========================= */
+
+function toggleZenMode() {
+    zenMode =!zenMode;
+    localStorage.setItem("zenMode", zenMode);
+    showToast(zenMode? '🧘 Zen Mode ON - No Timer' : '🎮 Normal Mode ON');
+}
+
+/* =========================
+   🏆 UPGRADE: ACHIEVEMENTS
+========================= */
+
+const ACHIEVEMENTS = {
+    first_win: { name: 'First Win', desc: 'Complete your first level', icon: '🎉' },
+    combo_5: { name: 'Combo Master', desc: 'Get a 5x combo', icon: '🔥' },
+    level_10: { name: 'Level 10', desc: 'Reach level 10', icon: '🏆' },
+    level_20: { name: 'Level 20', desc: 'Reach level 20', icon: '💎' },
+    score_1000: { name: '1000 Points', desc: 'Score 1000 points', icon: '💯' },
+    no_undo: { name: 'Perfect', desc: 'Complete level without undo', icon: '✨' }
+};
+
+function checkAchievement(type, value) {
+    let newAchievement = null;
+
+    if (type === 'game_start' && totalGames === 1 &&!achievements.includes('first_game')) {
+        newAchievement = 'first_game';
+    } else if (type === 'combo' && value >= 5 &&!achievements.includes('combo_5')) {
+        newAchievement = 'combo_5';
+    } else if (type === 'level_complete' && value === 10 &&!achievements.includes('level_10')) {
+        newAchievement = 'level_10';
+    } else if (type === 'level_complete' && value === 20 &&!achievements.includes('level_20')) {
+        newAchievement = 'level_20';
+    } else if (type === 'match' && score >= 1000 &&!achievements.includes('score_1000')) {
+        newAchievement = 'score_1000';
     }
+
+    if (newAchievement) {
+        achievements.push(newAchievement);
+        localStorage.setItem("achievements", JSON.stringify(achievements));
+        showAchievementToast(ACHIEVEMENTS[newAchievement]);
+    }
+}
+
+function showAchievementToast(ach) {
+    const toast = document.createElement('div');
+    toast.className = 'achievement-toast';
+    toast.innerHTML = `
+        <div class="ach-icon">${ach.icon}</div>
+        <div class="ach-text">
+            <b>Achievement Unlocked!</b>
+            <p>${ach.name}</p>
+        </div>
+    `;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.classList.add('show'), 100);
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+function checkAchievements() {
+    // Show achievement count in menu
+}
+
+/* =========================
+   📊 UPGRADE: STATS
+========================= */
+
+function showStats() {
+    winMessage.style.display = "block";
+    winMessage.innerHTML = `
+        <h2>📊 Your Stats</h2>
+        <div class="stats-grid">
+            <div class="stat-item"><b>${totalGames}</b><span>Games Played</span></div>
+            <div class="stat-item"><b>${level}</b><span>Highest Level</span></div>
+            <div class="stat-item"><b>${bestScore}</b><span>Best Score</span></div>
+            <div class="stat-item"><b>X${maxCombo}</b><span>Best Combo</span></div>
+            <div class="stat-item"><b>${achievements.length}</b><span>Achievements</span></div>
+        </div>
+        <button class="btn-primary" onclick="winMessage.style.display='none'">Close</button>
+    `;
+}
+
+/* =========================
+   🔔 TOAST
+========================= */
+
+function showToast(msg) {
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.innerText = msg;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.classList.add('show'), 100);
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, 2000);
 }
 
 /* =========================
@@ -567,36 +745,69 @@ style.innerHTML = `
   50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
   100% { opacity: 0; transform: translate(-50%, -50%) scale(2); }
 }
-.trail-particle {
-  position: fixed;
-  width: 8px;
-  height: 8px;
-  background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%);
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 998;
-  animation: particleFade 1s forwards;
-}
 @keyframes particleFade {
   to { opacity: 0; transform: scale(0); }
+}
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+@keyframes popupIn {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 }
 `;
 document.head.appendChild(style);
 
-// Theme apply on load
 applyTheme();
 
-// Add theme toggle button to menu
+// Add buttons to menu
+const btnContainer = document.createElement('div');
+btnContainer.style.display = 'flex';
+btnContainer.style.gap = '10px';
+btnContainer.style.marginTop = '10px';
+
 const themeBtn = document.createElement('button');
 themeBtn.className = 'btn-ghost';
-themeBtn.innerHTML = isDarkMode? '☀️ Light Mode' : '🌙 Dark Mode';
+themeBtn.innerHTML = isDarkMode? '☀️ Light' : '🌙 Dark';
 themeBtn.onclick = () => {
     toggleTheme();
-    themeBtn.innerHTML = isDarkMode? '☀️ Light Mode' : '🌙 Dark Mode';
+    themeBtn.innerHTML = isDarkMode? '☀️ Light' : '🌙 Dark';
 };
-themeBtn.style.marginTop = '10px';
+
+const zenBtn = document.createElement('button');
+zenBtn.className = 'btn-ghost';
+zenBtn.innerHTML = zenMode? '🎮 Normal' : '🧘 Zen';
+zenBtn.onclick = () => {
+    toggleZenMode();
+    zenBtn.innerHTML = zenMode? '🎮 Normal' : '🧘 Zen';
+};
+
+const statsBtn = document.createElement('button');
+statsBtn.className = 'btn-ghost';
+statsBtn.innerHTML = '📊 Stats';
+statsBtn.onclick = showStats;
+
+const undoBtn = document.createElement('button');
+undoBtn.className = 'btn-ghost';
+undoBtn.innerHTML = '↩️ Undo';
+undoBtn.onclick = undoMove;
+undoBtn.style.display = 'none';
+undoBtn.id = 'undo-btn';
+
+btnContainer.appendChild(themeBtn);
+btnContainer.appendChild(zenBtn);
+btnContainer.appendChild(statsBtn);
 
 showMenu();
 setTimeout(() => {
-    document.querySelector('.menu-buttons')?.appendChild(themeBtn);
+    document.querySelector('.menu-buttons')?.appendChild(btnContainer);
+    document.querySelector('.controls')?.appendChild(undoBtn);
 }, 100);
+
+// Show undo button in game
+const originalShowGame = showGame;
+showGame = function() {
+    originalShowGame();
+    document.getElementById('undo-btn').style.display = 'block';
+};

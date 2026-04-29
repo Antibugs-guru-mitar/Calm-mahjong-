@@ -1,4 +1,5 @@
 :root {
+  /* UPGRADE 7: THEME SWITCHER - Light/Dark Variables */
   --bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   --glass: rgba(255, 255, 255, 0.15);
   --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
@@ -6,13 +7,15 @@
   --tile-bg: rgba(255, 255, 255, 0.9);
   --primary: #667eea;
   --tile-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  --danger: #ff6b6b; /* UPGRADE 4: Timer color */
+  --success: #4ecdc4; /* UPGRADE 3: Combo color */
 }
 
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: 'Quicksand', Arial, sans-serif; /* HTML mein Quicksand link hai */
+  font-family: 'Quicksand', Arial, sans-serif;
 }
 
 body {
@@ -24,16 +27,17 @@ body {
   min-height: 100vh;
   padding: 20px;
   color: var(--text);
+  transition: background 0.3s ease; /* UPGRADE 7: Smooth theme transition */
 }
 
 /* =========================
-   🧠 MENU SCREEN - PHASE 7
+   🧠 MENU SCREEN - PHASE 9
 ========================= */
 
 .menu-screen {
-  position: fixed; /* HTML ke hisab se full screen */
+  position: fixed;
   inset: 0;
-  background: var(--bg); /* Purana white hataya, gradient */
+  background: var(--bg);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -79,7 +83,7 @@ body {
   gap: 12px;
 }
 
-/* PHASE 7 BUTTONS - HTML classes ke hisab se */
+/* PHASE 9 BUTTONS */
 .btn-primary, .btn-secondary, .btn-ghost {
   display: block;
   width: 100%;
@@ -114,22 +118,22 @@ body {
 button:hover { transform: translateY(-2px); }
 
 /* =========================
-   🎮 GAME CONTAINER - PHASE 7
+   🎮 GAME CONTAINER - PHASE 9
 ========================= */
 
 .game-container {
   text-align: center;
-  background: transparent; /* Purana white hataya */
+  background: transparent;
   padding: 0;
   border-radius: 16px;
   width: 92%;
   max-width: 520px;
-  box-shadow: none; /* Glass effect header mein */
+  box-shadow: none;
   position: relative;
   animation: fadeIn 0.5s ease;
 }
 
-/* GAME HEADER - NAYA HTML STRUCTURE */
+/* GAME HEADER */
 .game-header {
   background: var(--glass);
   backdrop-filter: blur(12px);
@@ -146,7 +150,7 @@ button:hover { transform: translateY(-2px); }
   font-size: 26px;
 }
 
-/* Info - NAYA STRUCTURE .stat ke saath */
+/* Info */
 .info {
   margin-top: 15px;
   font-size: 15px;
@@ -170,6 +174,23 @@ button:hover { transform: translateY(-2px); }
   font-weight: 700; 
 }
 
+/* UPGRADE 4: TIMER DISPLAY */
+#timer-display {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text);
+  background: var(--glass);
+  backdrop-filter: blur(12px);
+  padding: 10px 20px;
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  z-index: 100;
+  transition: color 0.3s ease;
+}
+
 /* Board */
 .board {
   display: grid;
@@ -179,7 +200,7 @@ button:hover { transform: translateY(-2px); }
   min-height: 320px;
 }
 
-/* Tiles - EMOJI HI HAIN LALA TENSION NA LE 🍎✅ */
+/* Tiles - EMOJI HI HAIN LALA 🍎✅ */
 .tile {
   background: var(--tile-bg);
   border-radius: 12px;
@@ -188,7 +209,7 @@ button:hover { transform: translateY(-2px); }
   justify-content: center;
   align-items: center;
   cursor: pointer;
-  font-size: 28px; /* Thora bara kiya */
+  font-size: 28px;
   user-select: none;
   transition: all 0.1s ease;
   box-shadow: var(--tile-shadow);
@@ -200,21 +221,22 @@ button:hover { transform: translateY(-2px); }
 
 .tile:active {
   transform: scale(0.92);
+  box-shadow: 0 0 20px var(--primary); /* UPGRADE: Glow effect */
 }
 
-/* PHASE 7: selected class JS se aati hai */
+/* PHASE 9: selected class */
 .tile.selected { 
   box-shadow: 0 0 0 3px var(--primary), var(--tile-shadow);
   transform: scale(0.95);
 }
 
+/* UPGRADE 2: TILE POP ANIMATION */
 .tile.matched {
-  opacity: 0.35;
-  transform: scale(0.95);
-  pointer-events: none; /* Click na ho */
+  animation: pop 0.3s ease forwards;
+  pointer-events: none;
 }
 
-/* Controls - PHASE 7: btn-icon class */
+/* Controls */
 .controls {
   display: flex;
   justify-content: center;
@@ -243,7 +265,7 @@ button:hover { transform: translateY(-2px); }
 }
 
 /* =========================
-   🏆 WIN SCREEN - PHASE 7
+   🏆 WIN SCREEN - PHASE 9
 ========================= */
 
 .win-popup {
@@ -261,6 +283,7 @@ button:hover { transform: translateY(-2px); }
   border: 1px solid rgba(255,255,255,0.2);
   width: 90%;
   max-width: 350px;
+  animation: fadeIn 0.3s ease; /* UPGRADE 1: Smooth popup */
 }
 
 .win-popup h2 {
@@ -272,7 +295,7 @@ button:hover { transform: translateY(-2px); }
 .win-popup p {
   color: var(--text);
   opacity: 0.9;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
 }
 
 /* Win popup ke buttons */
@@ -300,7 +323,22 @@ button:hover { transform: translateY(-2px); }
 }
 
 /* =========================
-   ANIMATIONS - PHASE 7
+   ✨ UPGRADE 5: PARTICLE TRAIL
+========================= */
+
+.trail-particle {
+  position: fixed;
+  width: 8px;
+  height: 8px;
+  background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 998;
+  animation: particleFade 1s forwards;
+}
+
+/* =========================
+   ANIMATIONS - PHASE 9
 ========================= */
 
 @keyframes fadeIn { 
@@ -313,10 +351,36 @@ button:hover { transform: translateY(-2px); }
   50% { transform: translateY(-10px); } 
 }
 
+/* UPGRADE 1: SHAKE - Stronger */
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-5px); }
-  75% { transform: translateX(5px); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+  20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+/* UPGRADE 1: FLASH */
+@keyframes flash {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.5); }
+}
+
+/* UPGRADE 2: POP */
+@keyframes pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.3); }
+  100% { transform: scale(0); opacity: 0; }
+}
+
+/* UPGRADE 3: COMBO POP */
+@keyframes comboPop {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+  50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(2); }
+}
+
+/* UPGRADE 5: PARTICLE FADE */
+@keyframes particleFade {
+  to { opacity: 0; transform: scale(0); }
 }
 
 /* 📱 MOBILE */
@@ -342,5 +406,12 @@ button:hover { transform: translateY(-2px); }
   
   .game-header {
     padding: 15px;
+  }
+
+  #timer-display {
+    font-size: 20px;
+    padding: 8px 16px;
+    top: 10px;
+    right: 10px;
   }
 }

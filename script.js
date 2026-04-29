@@ -2,15 +2,13 @@ const board = document.getElementById("game-board");
 const scoreText = document.getElementById("score");
 const winMessage = document.getElementById("win-message");
 const levelText = document.getElementById("level");
-const achievementBar = document.getElementById("achievement-bar");
 
 // 🎮 GAME STATE
-let gameState = "menu"; // menu | playing | win
+let gameState = "menu";
 
 // 💾 SAFE LOAD
 let level = parseInt(localStorage.getItem("level")) || 1;
 let score = parseInt(localStorage.getItem("score")) || 0;
-let bestScore = parseInt(localStorage.getItem("bestScore")) || 0;
 
 let firstTile = null;
 let matchedTiles = 0;
@@ -19,7 +17,7 @@ let totalTiles = 0;
 // 🧩 Base tiles
 const base = ["🍎","🍌","🍇","🍒","🍉","🍍","🥝","🍓"];
 
-// Shuffle (safe version)
+// Shuffle
 function shuffle(array) {
     return array.sort(() => Math.random() - 0.5);
 }
@@ -38,20 +36,28 @@ function getLevelTiles(level) {
 }
 
 /* =========================
-   🎮 MENU SYSTEM (FIXED)
+   🧠 UI SAFE CONTROLLER
+========================= */
+
+function hideOverlay() {
+    winMessage.style.display = "none";
+    winMessage.innerHTML = "";
+}
+
+/* =========================
+   🎮 MENU
 ========================= */
 
 function showMenu() {
     gameState = "menu";
 
-    board.innerHTML = ""; // 🔥 FIX: clear board
+    board.innerHTML = "";
     matchedTiles = 0;
     firstTile = null;
 
     winMessage.style.display = "block";
     winMessage.innerHTML = `
         <h2>🎮 Calm Mahjong</h2>
-        <p>Choose an option</p>
         <button onclick="startGame()">▶ Start Game</button>
         <button onclick="continueGame()">⏩ Continue</button>
         <button onclick="resetProgress()">♻ Reset</button>
@@ -59,15 +65,15 @@ function showMenu() {
 }
 
 function continueGame() {
-    winMessage.style.display = "none"; // 🔥 FIX
+    hideOverlay();
     startGame();
 }
 
 /* =========================
    🎮 LEVEL START
 ========================= */
-function showLevelStart() {
 
+function showLevelStart() {
     if (gameState !== "playing") return;
 
     winMessage.style.display = "block";
@@ -77,33 +83,27 @@ function showLevelStart() {
     `;
 
     setTimeout(() => {
-        winMessage.style.display = "none";
+        hideOverlay();
     }, 600);
 }
 
 /* =========================
-   🎮 START GAME (FIXED CORE)
+   🎮 START GAME
 ========================= */
+
 function startGame() {
 
     gameState = "playing";
-
-    winMessage.style.display = "none"; // 🔥 FIX OVERLAY BUG
+    hideOverlay();
 
     board.innerHTML = "";
-
     matchedTiles = 0;
     firstTile = null;
 
     scoreText.innerText = score;
+    levelText.innerText = level;
 
-    if (levelText) {
-        levelText.innerText = level;
-    }
-
-    setTimeout(() => {
-        showLevelStart();
-    }, 100);
+    setTimeout(showLevelStart, 100);
 
     let shuffled = shuffle(getLevelTiles(level));
     totalTiles = shuffled.length;
@@ -114,7 +114,6 @@ function startGame() {
         tile.innerText = symbol;
 
         tile.style.background = "#f0f0f0";
-        tile.style.transition = "0.2s";
 
         tile.addEventListener("click", () => handleTileClick(tile));
 
@@ -123,8 +122,9 @@ function startGame() {
 }
 
 /* =========================
-   🎮 TILE LOGIC (SAFE)
+   🎮 TILE LOGIC
 ========================= */
+
 function handleTileClick(tile) {
 
     if (gameState !== "playing") return;
@@ -151,7 +151,6 @@ function handleTileClick(tile) {
         scoreText.innerText = score;
 
         if (matchedTiles === totalTiles) {
-
             gameState = "win";
 
             setTimeout(() => {
@@ -174,6 +173,7 @@ function handleTileClick(tile) {
 /* =========================
    🎮 NEXT LEVEL
 ========================= */
+
 function nextLevel() {
     level++;
     localStorage.setItem("level", level);
@@ -183,6 +183,7 @@ function nextLevel() {
 /* =========================
    🔄 RESET
 ========================= */
+
 function restartGame() {
     startGame();
 }
@@ -197,4 +198,5 @@ function resetProgress() {
 /* =========================
    🚀 INIT
 ========================= */
+
 showMenu();

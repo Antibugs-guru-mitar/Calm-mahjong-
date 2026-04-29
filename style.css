@@ -17,28 +17,32 @@ body {
 .game-container {
     text-align: center;
     background: #ffffff;
-    padding: 20px;
-    border-radius: 15px;
-    width: 90%;
-    max-width: 500px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    padding: 22px;
+    border-radius: 16px;
+    width: 92%;
+    max-width: 520px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+    position: relative;
+    overflow: hidden;
 }
 
-/* Title */
+/* Title (Phase 7 glow upgrade) */
 h1 {
     margin-bottom: 10px;
-    color: #333;
+    color: #222;
     letter-spacing: 1px;
+    font-size: 26px;
 }
 
-/* Info (Level + Score + Best) */
+/* INFO PANEL (Phase 7 clean UI) */
 .info {
     margin-bottom: 15px;
-    font-size: 16px;
-    color: #444;
+    font-size: 15px;
+    color: #333;
     display: flex;
-    justify-content: space-around;
+    justify-content: space-between;
     font-weight: bold;
+    padding: 0 10px;
 }
 
 /* Board */
@@ -47,14 +51,14 @@ h1 {
     grid-template-columns: repeat(6, 1fr);
     gap: 8px;
     margin: 20px 0;
-    min-height: 300px;
+    min-height: 320px;
 }
 
-/* Tiles (PHASE 6 POLISH UPGRADE 🔥) */
+/* TILE (Phase 7 upgrade - smoother + modern feel) */
 .tile {
-    background: #f0f0f0;
-    border-radius: 10px;
-    height: 50px;
+    background: #f5f5f5;
+    border-radius: 12px;
+    height: 52px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -62,89 +66,83 @@ h1 {
     font-size: 22px;
     user-select: none;
 
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    transition: transform 0.15s ease, background 0.2s ease, opacity 0.2s ease;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.08);
 }
 
-/* Hover effect */
+/* Hover */
 .tile:hover {
-    transform: scale(1.08);
-    background: #e8e8e8;
+    transform: scale(1.07);
+    background: #ececec;
 }
 
-/* Click effect */
+/* Click */
 .tile:active {
     transform: scale(0.92);
 }
 
-/* Matched tiles */
+/* Matched */
 .tile.matched {
-    opacity: 0.4;
+    opacity: 0.35;
     transform: scale(0.95);
 }
 
-/* Buttons */
+/* BUTTONS (Phase 7 modern look) */
 .controls button {
-    padding: 10px 15px;
+    padding: 10px 14px;
     margin: 5px;
     border: none;
-    border-radius: 8px;
+    border-radius: 10px;
     cursor: pointer;
-    background: #4a90e2;
+    background: linear-gradient(135deg, #4a90e2, #357ab7);
     color: white;
-    transition: 0.3s;
+    transition: 0.25s;
     font-weight: bold;
 }
 
 .controls button:hover {
-    background: #357ab7;
     transform: scale(1.05);
+    filter: brightness(1.1);
 }
 
-/* WIN SCREEN (PHASE 6 UPGRADED 🔥) */
+/* WIN SCREEN (Phase 7 premium style) */
 #win-message {
-    margin-top: 20px;
-    padding: 20px;
+    margin-top: 18px;
+    padding: 22px;
     background: linear-gradient(135deg, #e6ffe6, #ffffff);
-    border-radius: 12px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    border-radius: 14px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.15);
     animation: pop 0.3s ease;
 }
 
-/* Win text */
+/* WIN TITLE */
 #win-message h2 {
-    color: #2e7d32;
-    margin-bottom: 10px;
+    color: #1b5e20;
+    margin-bottom: 8px;
 }
 
-/* POP ANIMATION */
+/* POP animation */
 @keyframes pop {
-    from {
-        transform: scale(0.7);
-        opacity: 0;
-    }
-    to {
-        transform: scale(1);
-        opacity: 1;
-    }
+    from { transform: scale(0.75); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
 }
 
-/* 🧠 PHASE 6 ADD: Achievement bar */
+/* Achievement bar (Phase 7 polish) */
 #achievement-bar {
-    font-size: 14px;
-    color: #2e7d32;
-    margin-top: 5px;
+    font-size: 13px;
+    color: #1b5e20;
+    margin-top: 6px;
     font-weight: bold;
 }
 
-/* 📱 MOBILE OPTIMIZATION (IMPORTANT) */
+/* 📱 MOBILE FIX (Phase 7 improved) */
 @media (max-width: 500px) {
     .board {
         grid-template-columns: repeat(4, 1fr);
     }
 
     .tile {
-        height: 45px;
+        height: 48px;
         font-size: 20px;
     }
 

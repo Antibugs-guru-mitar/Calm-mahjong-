@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calm Mahjong</title>
+    <title>Calm Mahjong - Phase 9</title>
     <!-- Google Font: Quicksand = Calm Vibe -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,6 +21,8 @@
             <div class="menu-buttons">
                 <button class="btn-primary" onclick="newGame()">🎮 New Game</button>
                 <button class="btn-secondary" onclick="continueGame()" id="continue-btn" style="display:none;">▶ Continue</button>
+                <!-- UPGRADE 6: DAILY CHALLENGE BUTTON - JS SE AUTO ADD HOGA -->
+                <!-- UPGRADE 7: THEME TOGGLE BUTTON - JS SE AUTO ADD HOGA -->
                 <button class="btn-ghost" onclick="resetProgress()">♻ Reset Progress</button>
             </div>
         </div>
@@ -28,12 +30,15 @@
 
     <!-- 🎮 GAME -->
     <div class="game-container" id="game-container" style="display:none;">
+        <!-- UPGRADE 4: TIMER DISPLAY - JS SE AUTO ADD HOGA -->
+        
         <div class="game-header">
             <h1>Calm Mahjong</h1>
             <div class="info">
                 <div class="stat"><span>Level</span><b id="level">1</b></div>
                 <div class="stat"><span>Score</span><b id="score">0</b></div>
                 <div class="stat"><span>Best</span><b id="best-score">0</b></div>
+                <!-- UPGRADE 3: COMBO DISPLAY - JS SE AUTO ADD HOGA -->
             </div>
         </div>
 
@@ -41,14 +46,16 @@
         <div id="achievement-bar"></div>
 
         <div class="controls">
-            <button class="btn-icon" onclick="restartGame()">🔄</button>
-            <button class="btn-icon" onclick="hint()">💡</button>
-            <button class="btn-icon" onclick="shuffleBoard()">🔀</button>
-            <button class="btn-icon" onclick="resetProgress()">♻</button>
+            <button class="btn-icon" onclick="restartGame()" title="Restart Level">🔄</button>
+            <button class="btn-icon" onclick="hint()" title="Hint">💡</button>
+            <button class="btn-icon" onclick="shuffleBoard()" title="Shuffle">🔀</button>
+            <button class="btn-icon" onclick="showMenu()" title="Main Menu">🏠</button>
         </div>
 
         <div id="win-message" class="win-popup" style="display:none;"></div>
     </div>
+
+    <!-- UPGRADE 5: PARTICLE TRAIL - JS SE AUTO HANDLE HOGA -->
 
     <script src="script.js"></script>
 </body>

@@ -2,6 +2,8 @@ const board = document.getElementById("game-board");
 const scoreText = document.getElementById("score");
 const winMessage = document.getElementById("win-message");
 const levelText = document.getElementById("level");
+const menuScreen = document.getElementById("menu-screen");
+const gameContainer = document.getElementById("game-container");
 
 // 🎮 GAME STATE
 let gameState = "menu";
@@ -36,36 +38,40 @@ function getLevelTiles(level) {
 }
 
 /* =========================
-   🧠 UI SAFE CONTROLLER
+   🧠 SCREEN CONTROL
 ========================= */
 
-function hideOverlay() {
-    winMessage.style.display = "none";
-    winMessage.innerHTML = "";
+function showGame() {
+    menuScreen.style.display = "none";
+    gameContainer.style.display = "block";
 }
-
-/* =========================
-   🎮 MENU
-========================= */
 
 function showMenu() {
     gameState = "menu";
 
-    board.innerHTML = "";
-    matchedTiles = 0;
-    firstTile = null;
+    menuScreen.style.display = "flex";
+    gameContainer.style.display = "none";
 
-    winMessage.style.display = "block";
-    winMessage.innerHTML = `
-        <h2>🎮 Calm Mahjong</h2>
-        <button onclick="startGame()">▶ Start Game</button>
-        <button onclick="continueGame()">⏩ Continue</button>
-        <button onclick="resetProgress()">♻ Reset</button>
-    `;
+    board.innerHTML = "";
+}
+
+/* =========================
+   🎮 MENU BUTTONS
+========================= */
+
+function newGame() {
+    level = 1;
+    score = 0;
+
+    localStorage.setItem("level", level);
+    localStorage.setItem("score", score);
+
+    showGame();
+    startGame();
 }
 
 function continueGame() {
-    hideOverlay();
+    showGame();
     startGame();
 }
 
@@ -74,8 +80,6 @@ function continueGame() {
 ========================= */
 
 function showLevelStart() {
-    if (gameState !== "playing") return;
-
     winMessage.style.display = "block";
     winMessage.innerHTML = `
         <h2>🎮 Level ${level}</h2>
@@ -83,8 +87,8 @@ function showLevelStart() {
     `;
 
     setTimeout(() => {
-        hideOverlay();
-    }, 600);
+        winMessage.style.display = "none";
+    }, 700);
 }
 
 /* =========================
@@ -94,7 +98,6 @@ function showLevelStart() {
 function startGame() {
 
     gameState = "playing";
-    hideOverlay();
 
     board.innerHTML = "";
     matchedTiles = 0;
@@ -103,7 +106,7 @@ function startGame() {
     scoreText.innerText = score;
     levelText.innerText = level;
 
-    setTimeout(showLevelStart, 100);
+    showLevelStart();
 
     let shuffled = shuffle(getLevelTiles(level));
     totalTiles = shuffled.length;
@@ -112,8 +115,6 @@ function startGame() {
         let tile = document.createElement("div");
         tile.classList.add("tile");
         tile.innerText = symbol;
-
-        tile.style.background = "#f0f0f0";
 
         tile.addEventListener("click", () => handleTileClick(tile));
 
@@ -151,6 +152,7 @@ function handleTileClick(tile) {
         scoreText.innerText = score;
 
         if (matchedTiles === totalTiles) {
+
             gameState = "win";
 
             setTimeout(() => {

@@ -10,11 +10,28 @@
 
 <body>
 
-    <div class="game-container">
+    <!-- 🔥 PHASE 7 STEP 1 MAIN MENU -->
+    <div id="menu-screen" class="menu-screen">
+
+        <div class="menu-box">
+            <h1>🀄 Calm Mahjong</h1>
+            <p>Relaxing Tile Matching Puzzle</p>
+
+            <div class="menu-buttons">
+                <button onclick="newGame()">🎮 New Game</button>
+                <button onclick="continueGame()">▶ Continue</button>
+                <button onclick="resetProgress()">♻ Reset Progress</button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 🎮 MAIN GAME -->
+    <div class="game-container" id="game-container" style="display:none;">
 
         <h1>Calm Mahjong</h1>
 
-        <!-- 🧠 PHASE 6 ADD: GAME STATUS BAR -->
+        <!-- 🧠 STATUS BAR -->
         <div class="info">
             <p>Level: <span id="level">1</span></p>
             <p>Score: <span id="score">0</span></p>
@@ -24,14 +41,14 @@
         <!-- 🎮 GAME BOARD -->
         <div id="game-board" class="board"></div>
 
-        <!-- 🧠 PHASE 6 ADD: ACHIEVEMENT DISPLAY -->
-        <div id="achievement-bar" style="margin-top:10px; font-size:14px; color:green;"></div>
+        <!-- 🏆 ACHIEVEMENT BAR -->
+        <div id="achievement-bar" class="achievement-bar"></div>
 
-        <!-- CONTROLS (UNCHANGED + SAFE ADD) -->
+        <!-- 🎛 CONTROLS -->
         <div class="controls">
 
-            <button onclick="startGame()">Start Game</button>
-            <button onclick="restartGame()">Restart</button>
+            <button onclick="startGame()">▶ Start</button>
+            <button onclick="restartGame()">🔄 Restart</button>
 
             <button onclick="hint()">💡 Hint</button>
             <button onclick="shuffleBoard()">🔀 Shuffle</button>
@@ -39,11 +56,8 @@
 
         </div>
 
-        <!-- 🏆 WIN SCREEN (PHASE 6 READY) -->
+        <!-- 🏆 WIN SCREEN -->
         <div id="win-message" style="display:none;"></div>
-
-        <!-- 🎮 PHASE 6 ADD: MENU OVERLAY (FUTURE READY) -->
-        <div id="menu-screen" style="display:none;"></div>
 
     </div>
 

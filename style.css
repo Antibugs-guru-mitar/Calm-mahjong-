@@ -1,13 +1,13 @@
 :root {
   --bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --glass: rgba(255, 255, 0.15);
+  --glass: rgba(255, 255, 255, 0.15); /* ✅ FIXED: 255 add kiya */
   --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
   --text: #ffffff;
   --text-gold: #ffd700;
-  --tile-bg: rgba(255, 255, 0.9);
+  --tile-bg: rgba(255, 255, 255, 0.9); /* ✅ FIXED: 255 add kiya */
   --primary: #667eea;
   --tile-shadow: 0 4px 15px rgba(0,0,0,0.1);
-  --glass-border: rgba(255, 255, 0.18);
+  --glass-border: rgba(255, 255, 255, 0.18); /* ✅ FIXED: 255 add kiya */
 }
 
 * {
@@ -43,7 +43,6 @@ body {
     transition: transform 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
     will-change: transform;
     backface-visibility: hidden;
-    /* BUG FIX: Hardware acceleration force */
     transform: translateZ(0);
 }
 
@@ -63,7 +62,6 @@ body {
     transform: translateX(100%) translateZ(0); 
 }
 
-/* BUG FIX: Fallback agar door elements nahi mile */
 body.no-doors .door-left,
 body.no-doors .door-right {
     display: none;
@@ -221,7 +219,7 @@ button:hover { transform: translateY(-2px); }
   min-height: 320px;
 }
 
-/* Tiles - BUG FIX: Hardware acceleration */
+/* Tiles */
 .tile {
   background: var(--tile-bg);
   border-radius: 12px;
@@ -344,7 +342,7 @@ button:hover { transform: translateY(-2px); }
 }
 
 /* =========================
-   ⏱️ TIMER - BUG FIX
+   ⏱️ TIMER
 ========================= */
 
 #timer-display {
@@ -448,7 +446,7 @@ button:hover { transform: translateY(-2px); }
 }
 
 /* =========================
-   ✨ PARTICLE TRAIL - BUG FIX
+   ✨ PARTICLE TRAIL
 ========================= */
 
 .trail-particle {
@@ -464,7 +462,7 @@ button:hover { transform: translateY(-2px); }
 }
 
 /* =========================
-   ANIMATIONS - LIGHT WEIGHT
+   ANIMATIONS
 ========================= */
 
 @keyframes fadeIn { 
@@ -509,7 +507,7 @@ button:hover { transform: translateY(-2px); }
 }
 
 /* =========================
-   📱 MOBILE - BUG FIX LALA
+   📱 MOBILE
 ========================= */
 
 @media (max-width: 500px) {
@@ -536,7 +534,6 @@ button:hover { transform: translateY(-2px); }
     padding: 15px;
   }
 
-  /* BUG FIX: Mobile pe heavy effects band */
   .trail-particle {
         display: none!important;
     }
@@ -551,7 +548,7 @@ button:hover { transform: translateY(-2px); }
   }
 }
 
-/* BUG FIX: iOS Safari fix */
+/* iOS Safari fix */
 @supports (-webkit-touch-callout: none) {
   .door-left, .door-right {
     -webkit-transform: translateZ(0);

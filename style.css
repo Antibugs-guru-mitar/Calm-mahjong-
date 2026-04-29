@@ -50,10 +50,10 @@ body {
 }
 
 /* =========================
-   🚪 PHASE 12: DOOR ANIMATION
+   🚪 PHASE 12: DOOR ANIMATION - FIXED
 ========================= */
 
-.door-left,.door-right {
+.door-left, .door-right {
   position: fixed;
   top: 0;
   width: 50vw;
@@ -62,27 +62,27 @@ body {
   z-index: 9999;
   transition: transform 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
   box-shadow: inset 0 0 50px rgba(0,0,0,0.5);
+  pointer-events: auto;
 }
 
-.door-left {
-  left: 0;
-  border-right: 4px solid #8b6f47;
+.door-left { 
+  left: 0; 
+  border-right: 4px solid #8b6f47; 
 }
 
-.door-right {
-  right: 0;
-  border-left: 4px solid #8b6f47;
+.door-right { 
+  right: 0; 
+  border-left: 4px solid #8b6f47; 
 }
 
-.door-left.open {
-  transform: translateX(-100%);
+.door-left.open, .door-right.open {
+  pointer-events: none;
 }
 
-.door-right.open {
-  transform: translateX(100%);
-}
+.door-left.open { transform: translateX(-100%); }
+.door-right.open { transform: translateX(100%); }
 
-.door-left::before,.door-right::before {
+.door-left::before, .door-right::before {
   content: '';
   position: absolute;
   top: 50%;
@@ -94,15 +94,8 @@ body {
   box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
 }
 
-.door-left::before {
-  right: -35px;
-  transform: translateY(-50%);
-}
-
-.door-right::before {
-  left: -35px;
-  transform: translateY(-50%);
-}
+.door-left::before { right: -35px; transform: translateY(-50%); }
+.door-right::before { left: -35px; transform: translateY(-50%); }
 
 /* =========================
    🧠 MENU SCREEN - PHASE 12
@@ -163,7 +156,7 @@ body {
 }
 
 /* PHASE 12 BUTTONS - GOLD 3D */
-.btn-primary,.btn-secondary,.btn-ghost {
+.btn-primary, .btn-secondary, .btn-ghost {
   display: block;
   width: 100%;
   padding: 16px 20px;
@@ -205,7 +198,7 @@ button:hover {
 }
 
 /* =========================
-   🎮 GAME CONTAINER - PHASE 12
+   🎮 GAME CONTAINER - BUG FIX 2 AUTO FIT
 ========================= */
 
 .game-container {
@@ -314,7 +307,7 @@ button:hover {
   padding: 5px;
 }
 
-/* TILES - WOOD STYLE */
+/* TILES - WOOD STYLE AUTO SIZE */
 .tile {
   background: var(--tile-bg);
   border-radius: 12px;
@@ -323,6 +316,7 @@ button:hover {
   justify-content: center;
   align-items: center;
   cursor: pointer;
+  /* BUG FIX 2: AUTO FONT SIZE */
   font-size: clamp(18px, 5vw, 28px);
   user-select: none;
   transition: all 0.1s ease;
@@ -628,7 +622,7 @@ button:hover {
   50% { transform: scale(1.05); }
 }
 
-/* 📱 MOBILE */
+/* 📱 MOBILE - BUG FIX 2 */
 @media (max-width: 500px) {
   .board {
     grid-template-columns: repeat(4, 1fr);

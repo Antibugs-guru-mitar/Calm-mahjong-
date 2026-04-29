@@ -13,7 +13,49 @@ body {
     min-height: 100vh;
 }
 
-/* Game container */
+/* =========================
+   🧠 MENU SCREEN (FIXED)
+========================= */
+
+.menu-screen {
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.95);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.menu-box {
+    text-align: center;
+    padding: 25px;
+    border-radius: 16px;
+    background: white;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+    width: 85%;
+    max-width: 400px;
+}
+
+.menu-box h1 {
+    font-size: 28px;
+    margin-bottom: 10px;
+}
+
+.menu-box p {
+    margin-bottom: 20px;
+    color: #666;
+}
+
+.menu-buttons button {
+    display: block;
+    width: 100%;
+    margin: 8px 0;
+}
+
+/* =========================
+   🎮 GAME CONTAINER
+========================= */
+
 .game-container {
     text-align: center;
     background: #ffffff;
@@ -23,10 +65,9 @@ body {
     max-width: 520px;
     box-shadow: 0 12px 30px rgba(0,0,0,0.12);
     position: relative;
-    overflow: hidden;
 }
 
-/* Title (Phase 7 glow upgrade) */
+/* Title */
 h1 {
     margin-bottom: 10px;
     color: #222;
@@ -34,7 +75,7 @@ h1 {
     font-size: 26px;
 }
 
-/* INFO PANEL (Phase 7 clean UI) */
+/* Info */
 .info {
     margin-bottom: 15px;
     font-size: 15px;
@@ -54,7 +95,7 @@ h1 {
     min-height: 320px;
 }
 
-/* TILE (Phase 7 upgrade - smoother + modern feel) */
+/* Tiles */
 .tile {
     background: #f5f5f5;
     border-radius: 12px;
@@ -65,29 +106,24 @@ h1 {
     cursor: pointer;
     font-size: 22px;
     user-select: none;
-
     transition: transform 0.15s ease, background 0.2s ease, opacity 0.2s ease;
     box-shadow: 0 3px 8px rgba(0,0,0,0.08);
 }
 
-/* Hover */
 .tile:hover {
     transform: scale(1.07);
-    background: #ececec;
 }
 
-/* Click */
 .tile:active {
     transform: scale(0.92);
 }
 
-/* Matched */
 .tile.matched {
     opacity: 0.35;
     transform: scale(0.95);
 }
 
-/* BUTTONS (Phase 7 modern look) */
+/* Buttons */
 .controls button {
     padding: 10px 14px;
     margin: 5px;
@@ -105,7 +141,10 @@ h1 {
     filter: brightness(1.1);
 }
 
-/* WIN SCREEN (Phase 7 premium style) */
+/* =========================
+   🏆 WIN SCREEN (SAFE FIX)
+========================= */
+
 #win-message {
     margin-top: 18px;
     padding: 22px;
@@ -115,19 +154,18 @@ h1 {
     animation: pop 0.3s ease;
 }
 
-/* WIN TITLE */
 #win-message h2 {
     color: #1b5e20;
     margin-bottom: 8px;
 }
 
-/* POP animation */
+/* Animation */
 @keyframes pop {
     from { transform: scale(0.75); opacity: 0; }
     to { transform: scale(1); opacity: 1; }
 }
 
-/* Achievement bar (Phase 7 polish) */
+/* Achievement */
 #achievement-bar {
     font-size: 13px;
     color: #1b5e20;
@@ -135,7 +173,7 @@ h1 {
     font-weight: bold;
 }
 
-/* 📱 MOBILE FIX (Phase 7 improved) */
+/* 📱 MOBILE */
 @media (max-width: 500px) {
     .board {
         grid-template-columns: repeat(4, 1fr);

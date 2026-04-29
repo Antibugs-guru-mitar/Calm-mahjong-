@@ -1,5 +1,5 @@
 :root {
-  /* UPGRADE 7: THEME SWITCHER - Light/Dark Variables */
+  /* UPGRADE 7: THEME SWITCHER - Light Mode Default */
   --bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   --glass: rgba(255, 255, 255, 0.15);
   --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
@@ -7,8 +7,21 @@
   --tile-bg: rgba(255, 255, 255, 0.9);
   --primary: #667eea;
   --tile-shadow: 0 4px 15px rgba(0,0,0,0.1);
-  --danger: #ff6b6b; /* UPGRADE 4: Timer color */
+  /* PHASE 9 COLORS */
+  --danger: #ff6b6b; /* UPGRADE 4: Timer red */
   --success: #4ecdc4; /* UPGRADE 3: Combo color */
+  --warning: #ffd93d; /* Timer warning */
+}
+
+/* UPGRADE 7: DARK MODE VARIABLES */
+[data-theme="dark"] {
+  --bg: linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 100%);
+  --glass: rgba(0, 0, 0, 0.3);
+  --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+  --text: #e0e0e0;
+  --tile-bg: rgba(40, 40, 60, 0.9);
+  --primary: #8b7fd1;
+  --tile-shadow: 0 4px 15px rgba(0,0,0,0.3);
 }
 
 * {
@@ -27,7 +40,8 @@ body {
   min-height: 100vh;
   padding: 20px;
   color: var(--text);
-  transition: background 0.3s ease; /* UPGRADE 7: Smooth theme transition */
+  transition: background 0.3s ease; /* UPGRADE 7: Smooth theme */
+  overflow-x: hidden; /* UPGRADE 1: Confetti overflow fix */
 }
 
 /* =========================
@@ -188,7 +202,18 @@ button:hover { transform: translateY(-2px); }
   border-radius: 12px;
   box-shadow: var(--shadow);
   z-index: 100;
-  transition: color 0.3s ease;
+  transition: all 0.3s ease;
+  animation: fadeIn 0.3s ease;
+}
+
+#timer-display.warning {
+  color: var(--warning);
+  animation: pulse 1s infinite;
+}
+
+#timer-display.danger {
+  color: var(--danger);
+  animation: pulse 0.5s infinite;
 }
 
 /* Board */
@@ -224,7 +249,6 @@ button:hover { transform: translateY(-2px); }
   box-shadow: 0 0 20px var(--primary); /* UPGRADE: Glow effect */
 }
 
-/* PHASE 9: selected class */
 .tile.selected { 
   box-shadow: 0 0 0 3px var(--primary), var(--tile-shadow);
   transform: scale(0.95);
@@ -283,7 +307,7 @@ button:hover { transform: translateY(-2px); }
   border: 1px solid rgba(255,255,255,0.2);
   width: 90%;
   max-width: 350px;
-  animation: fadeIn 0.3s ease; /* UPGRADE 1: Smooth popup */
+  animation: popupIn 0.3s ease; /* UPGRADE 1: Smooth popup */
 }
 
 .win-popup h2 {
@@ -298,7 +322,6 @@ button:hover { transform: translateY(-2px); }
   margin-bottom: 10px;
 }
 
-/* Win popup ke buttons */
 .win-popup .btn-primary {
   margin: 5px;
   width: auto;
@@ -335,6 +358,24 @@ button:hover { transform: translateY(-2px); }
   pointer-events: none;
   z-index: 998;
   animation: particleFade 1s forwards;
+}
+
+/* =========================
+   🔥 UPGRADE 3: COMBO TEXT
+========================= */
+
+.combo-text {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 40px;
+  font-weight: 700;
+  color: var(--success);
+  z-index: 999;
+  pointer-events: none;
+  animation: comboPop 1s forwards;
+  text-shadow: 0 0 20px var(--success);
 }
 
 /* =========================
@@ -378,9 +419,21 @@ button:hover { transform: translateY(-2px); }
   100% { opacity: 0; transform: translate(-50%, -50%) scale(2); }
 }
 
+/* UPGRADE 1: POPUP IN */
+@keyframes popupIn {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
 /* UPGRADE 5: PARTICLE FADE */
 @keyframes particleFade {
   to { opacity: 0; transform: scale(0); }
+}
+
+/* UPGRADE 4: TIMER PULSE */
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
 }
 
 /* 📱 MOBILE */
@@ -413,5 +466,9 @@ button:hover { transform: translateY(-2px); }
     padding: 8px 16px;
     top: 10px;
     right: 10px;
+  }
+
+  .combo-text {
+    font-size: 32px;
   }
 }

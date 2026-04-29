@@ -2,26 +2,28 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calm Mahjong - Phase 12 Vita Killer</title>
-    <!-- PHASE 12: Google Font - Cinzel + Poppins = Premium Wood Vibe -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"> <!-- ✅ FIX 1: Zoom band -->
+    <title>MatchMaster - Vita Killer Light</title> <!-- ✅ FIX 2: Title update -->
+    
+    <!-- ✅ FIX 3: CSS ke hisab se fonts - Quicksand + Cinzel dono -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&family=Cinzel:wght@700&display=swap" rel="stylesheet">
+    
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-    <!-- PHASE 12: DOOR ANIMATION - Vita Jesa -->
+    <!-- PHASE 12: DOOR ANIMATION - ✅ YE THEEK HAI -->
     <div class="door-left"></div>
     <div class="door-right"></div>
 
-    <!-- 🧠 MENU SCREEN -->
+    <!-- 🧠 MENU SCREEN - ✅ YE THEEK HAI -->
     <div id="menu-screen" class="menu-screen">
         <div class="menu-box">
             <div class="logo">🀄</div>
-            <h1>Calm Mahjong</h1>
-            <p class="subtitle">Relaxing Tile Matching Puzzle</p>
+            <h1>MatchMaster</h1> <!-- ✅ FIX 4: Calm Mahjong → MatchMaster -->
+            <p class="subtitle">Vita Killer Light Edition</p> <!-- ✅ FIX 5: Subtitle update -->
             <div class="menu-buttons">
                 <button class="btn-primary" onclick="newGame()">🎮 New Game</button>
                 <button class="btn-secondary" onclick="continueGame()" id="continue-btn" style="display:none;">▶ Continue</button>
@@ -32,12 +34,10 @@
         </div>
     </div>
 
-    <!-- 🎮 GAME -->
+    <!-- 🎮 GAME - ✅ YE THEEK HAI -->
     <div class="game-container" id="game-container" style="display:none;">
-        <!-- UPGRADE: TIMER DISPLAY - JS SE AUTO ADD HOGA -->
-        
         <div class="game-header">
-            <h1>Calm Mahjong</h1>
+            <h1>MatchMaster</h1> <!-- ✅ FIX 6: Calm Mahjong → MatchMaster -->
             <div class="info">
                 <div class="stat"><span>Level</span><b id="level">1</b></div>
                 <div class="stat"><span>Score</span><b id="score">0</b></div>

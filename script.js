@@ -6,10 +6,9 @@ const bestScoreText = document.getElementById("best-score");
 const menuScreen = document.getElementById("menu-screen");
 const gameContainer = document.getElementById("game-container");
 const continueBtn = document.getElementById("continue-btn");
-
-// PHASE 12: DOOR ELEMENTS - FIX
-const doorLeft = document.querySelector('.door-left');
-const doorRight = document.querySelector('.door-right');
+// BUG FIX: Null check + fallback
+const doorLeft = document.querySelector('.door-left') || document.createElement('div');
+const doorRight = document.querySelector('.door-right') || document.createElement('div');
 
 // 🎮 GAME STATE
 let gameState = "menu";
@@ -19,7 +18,7 @@ let level = parseInt(localStorage.getItem("level")) || 1;
 let score = parseInt(localStorage.getItem("score")) || 0;
 let bestScore = parseInt(localStorage.getItem("bestScore")) || 0;
 
-// PHASE 12 VARIABLES
+// PHASE 12 VARIABLES - LIGHT WEIGHT
 let firstTile = null;
 let matchedTiles = 0;
 let totalTiles = 0;
@@ -34,10 +33,8 @@ let undoStack = [];
 let zenMode = localStorage.getItem("zenMode") === "true";
 let achievements = JSON.parse(localStorage.getItem("achievements")) || [];
 
-// 🧩 Base tiles
 const base = ["🍎","🍌","🍇","🍒","🍉","🍍","🥝","🍓","🥭","🍑","🍐","🥥"];
 
-// BUG FIX 2: BETTER SHUFFLE
 function shuffle(array) {
     let arr = [...array];
     for (let i = arr.length - 1; i > 0; i--) {
@@ -47,7 +44,6 @@ function shuffle(array) {
     return arr;
 }
 
-// BUG FIX 2: MAHJONG FEEL - Kam pairs
 function getLevelTiles(level) {
     let tiles = [];
     let pairs = Math.min(4 + level, 20);
@@ -59,32 +55,41 @@ function getLevelTiles(level) {
 }
 
 /* =========================
-   🚪 PHASE 12: DOOR FIX
+   🚪 DOOR ANIMATION - BUG FIX
 ========================= */
 
 function openDoor(callback) {
-    if (!doorLeft ||!doorRight) return;
-    doorLeft.classList.add('open');
-    doorRight.classList.add('open');
-    setTimeout(() => {
-        doorLeft.style.pointerEvents = 'none';
-        doorRight.style.pointerEvents = 'none';
+    if (!doorLeft.classList ||!doorRight.classList) {
         if(callback) callback();
-    }, 800);
+        return;
+    }
+    try {
+        doorLeft.classList.add('open');
+        doorRight.classList.add('open');
+        setTimeout(() => {
+            doorLeft.style.pointerEvents = 'none';
+            doorRight.style.pointerEvents = 'none';
+            if(callback) callback();
+        }, 800);
+    } catch(e) {
+        if(callback) callback();
+    }
 }
 
 function closeDoor() {
-    if (!doorLeft ||!doorRight) return;
-    doorLeft.style.pointerEvents = 'auto';
-    doorRight.style.pointerEvents = 'auto';
-    setTimeout(() => {
-        doorLeft.classList.remove('open');
-        doorRight.classList.remove('open');
-    }, 100);
+    if (!doorLeft.classList ||!doorRight.classList) return;
+    try {
+        doorLeft.style.pointerEvents = 'auto';
+        doorRight.style.pointerEvents = 'auto';
+        setTimeout(() => {
+            doorLeft.classList.remove('open');
+            doorRight.classList.remove('open');
+        }, 100);
+    } catch(e) {}
 }
 
 /* =========================
-   🧠 SCREEN CONTROL - FIXED
+   🧠 SCREEN CONTROL
 ========================= */
 
 function showGame() {
@@ -156,7 +161,7 @@ function showLevelStart() {
 }
 
 /* =========================
-   🎮 START GAME - BUG FIX 1
+   🎮 START GAME
 ========================= */
 
 function startGame(savedBoard = null, savedMatched = 0) {
@@ -193,7 +198,6 @@ function startGame(savedBoard = null, savedMatched = 0) {
         board.appendChild(tile);
     });
 
-    // BUG FIX 1: DYNAMIC TIMER + ZEN MODE CHECK
     if (level >= 5 &&!savedBoard &&!zenMode) {
         timeLeft = 60 + (level - 5) * 10;
         timeLeft = Math.min(timeLeft, 180);
@@ -205,7 +209,7 @@ function startGame(savedBoard = null, savedMatched = 0) {
 }
 
 /* =========================
-   🎮 TILE LOGIC + UNDO
+   🎮 TILE LOGIC
 ========================= */
 
 function handleTileClick(tile) {
@@ -236,7 +240,6 @@ function handleTileClick(tile) {
         firstTile.classList.add("matched");
         tile.classList.add("matched");
         firstTile.classList.remove("selected");
-
         score += 10 * comboMultiplier;
         matchedTiles += 2;
 
@@ -272,7 +275,6 @@ function handleTileClick(tile) {
                     <h2>🎉 Level ${level} Complete!</h2>
                     <p>Score: ${score}</p>
                     ${combo > 1? `<p>Max Combo: X${maxCombo} 🔥</p>` : ''}
-                    ${!zenMode && level >= 5? `<p>Time: ${60 + (level - 5) * 10 - timeLeft}s</p>` : ''}
                     <button class="btn-primary" onclick="nextLevel()">Next Level</button>
                     <button class="btn-ghost" onclick="showMenu()">Main Menu</button>
                 `;
@@ -431,21 +433,19 @@ function checkContinueButton() {
 }
 
 /* =========================
-   🎉 VICTORY JASHAN
+   🎉 VICTORY JASHAN - LIGHT
 ========================= */
 
 function playVictoryJashan() {
-    gameContainer.style.animation = "shake 0.5s";
-    setTimeout(() => gameContainer.style.animation = "", 500);
-    board.style.animation = "flash 0.3s";
-    setTimeout(() => board.style.animation = "", 300);
+    gameContainer.style.animation = "flash 0.3s";
+    setTimeout(() => gameContainer.style.animation = "", 300);
     launchConfetti();
     if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
 }
 
 function launchConfetti() {
-    const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff', '#ff6b6b', '#4ecdc4'];
-    for (let i = 0; i < 50; i++) {
+    const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00'];
+    for (let i = 0; i < 20; i++) {
         createConfettiPiece(colors[Math.floor(Math.random() * colors.length)]);
     }
 }
@@ -466,8 +466,8 @@ function createConfettiPiece(color) {
         { transform: 'translateY(0) rotate(0deg)', opacity: 1 },
         { transform: `translateY(100vh) rotate(${Math.random() * 720}deg)`, opacity: 0 }
     ], {
-        duration: Math.random() * 3000 + 2000,
-        easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+        duration: Math.random() * 2000 + 1000,
+        easing: 'linear'
     });
     animation.onfinish = () => confetti.remove();
 }
@@ -485,7 +485,7 @@ function showComboText(x) {
 }
 
 /* =========================
-   ⏱️ TIMER MODE - BUG FIX 1
+   ⏱️ TIMER MODE
 ========================= */
 
 function startTimer() {
@@ -539,13 +539,14 @@ function gameOver() {
 }
 
 /* =========================
-   ✨ PARTICLE TRAIL
+   ✨ PARTICLE TRAIL - LIGHT
 ========================= */
 
 let particles = [];
 let mouseX = 0, mouseY = 0;
 
 function startParticleTrail() {
+    if (window.innerWidth < 768) return;
     document.addEventListener('mousemove', updateMousePos);
     document.addEventListener('touchmove', updateTouchPos);
     requestAnimationFrame(createTrailParticle);
@@ -570,7 +571,7 @@ function updateTouchPos(e) {
 
 function createTrailParticle() {
     if (gameState!== "playing") return;
-    if (Math.random() > 0.7) {
+    if (Math.random() > 0.8) {
         const particle = document.createElement('div');
         particle.className = 'trail-particle';
         particle.style.left = mouseX + 'px';
@@ -580,7 +581,7 @@ function createTrailParticle() {
         setTimeout(() => {
             particle.remove();
             particles = particles.filter(p => p!== particle);
-        }, 1000);
+        }, 800);
     }
     requestAnimationFrame(createTrailParticle);
 }
@@ -733,19 +734,19 @@ function showToast(msg) {
 }
 
 /* =========================
-   🚀 INIT
+   🚀 INIT - BUG FIX
 ========================= */
 
 const style = document.createElement('style');
 style.innerHTML = `
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
-  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-  20%, 40%, 60%, 80% { transform: translateX(5px); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-3px); }
+  20%, 40%, 60%, 80% { transform: translateX(3px); }
 }
 @keyframes flash {
   0%, 100% { filter: brightness(1); }
-  50% { filter: brightness(1.5); }
+  50% { filter: brightness(1.3); }
 }
 @keyframes comboPop {
   0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
@@ -754,10 +755,6 @@ style.innerHTML = `
 }
 @keyframes particleFade {
   to { opacity: 0; transform: scale(0); }
-}
-@keyframes pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
 }
 @keyframes popupIn {
   from { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
@@ -772,6 +769,7 @@ const btnContainer = document.createElement('div');
 btnContainer.style.display = 'flex';
 btnContainer.style.gap = '10px';
 btnContainer.style.marginTop = '10px';
+btnContainer.style.flexWrap = 'wrap';
 
 const themeBtn = document.createElement('button');
 themeBtn.className = 'btn-ghost';
@@ -805,11 +803,20 @@ btnContainer.appendChild(themeBtn);
 btnContainer.appendChild(zenBtn);
 btnContainer.appendChild(statsBtn);
 
-showMenu();
-setTimeout(() => {
-    document.querySelector('.menu-buttons')?.appendChild(btnContainer);
-    document.querySelector('.controls')?.appendChild(undoBtn);
-}, 100);
+// BUG FIX: DOM ready check
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initGame);
+} else {
+    initGame();
+}
+
+function initGame() {
+    showMenu();
+    setTimeout(() => {
+        document.querySelector('.menu-buttons')?.appendChild(btnContainer);
+        document.querySelector('.controls')?.appendChild(undoBtn);
+    }, 100);
+}
 
 const originalShowGame = showGame;
 showGame = function() {

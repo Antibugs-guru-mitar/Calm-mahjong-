@@ -2,10 +2,10 @@ const board = document.getElementById("game-board");
 const scoreText = document.getElementById("score");
 const winMessage = document.getElementById("win-message");
 const levelText = document.getElementById("level");
-const bestScoreText = document.getElementById("best-score"); // PHASE 7 ADD
+const bestScoreText = document.getElementById("best-score");
 const menuScreen = document.getElementById("menu-screen");
 const gameContainer = document.getElementById("game-container");
-const continueBtn = document.getElementById("continue-btn"); // PHASE 7 ADD
+const continueBtn = document.getElementById("continue-btn");
 
 // 🎮 GAME STATE
 let gameState = "menu";
@@ -13,7 +13,7 @@ let gameState = "menu";
 // 💾 SAFE LOAD
 let level = parseInt(localStorage.getItem("level")) || 1;
 let score = parseInt(localStorage.getItem("score")) || 0;
-let bestScore = parseInt(localStorage.getItem("bestScore")) || 0; // PHASE 7 ADD
+let bestScore = parseInt(localStorage.getItem("bestScore")) || 0;
 
 let firstTile = null;
 let matchedTiles = 0;
@@ -54,8 +54,6 @@ function showMenu() {
     menuScreen.style.display = "flex";
     gameContainer.style.display = "none";
     board.innerHTML = "";
-
-    // PHASE 7: Continue button check
     checkContinueButton();
 }
 
@@ -68,13 +66,18 @@ function newGame() {
     score = 0;
     localStorage.setItem("level", level);
     localStorage.setItem("score", score);
+    localStorage.removeItem("savedBoard");
+    localStorage.removeItem("savedMatched");
     showGame();
     startGame();
 }
 
 function continueGame() {
+    const savedBoard = JSON.parse(localStorage.getItem("savedBoard"));
+    const savedMatched = parseInt(localStorage.getItem("savedMatched")) || 0;
+
     showGame();
-    startGame();
+    startGame(savedBoard, savedMatched);
 }
 
 /* =========================
@@ -97,28 +100,39 @@ function showLevelStart() {
    🎮 START GAME
 ========================= */
 
-function startGame() {
+function startGame(savedBoard = null, savedMatched = 0) {
     gameState = "playing";
     board.innerHTML = "";
-    matchedTiles = 0;
+    matchedTiles = savedMatched;
     firstTile = null;
 
     scoreText.innerText = score;
     levelText.innerText = level;
-    bestScoreText.innerText = bestScore; // PHASE 7 ADD
+    bestScoreText.innerText = bestScore;
 
     showLevelStart();
 
-    let shuffled = shuffle(getLevelTiles(level));
-    totalTiles = shuffled.length;
+    let shuffled;
+    if (savedBoard) {
+        shuffled = savedBoard;
+        totalTiles = savedBoard.length;
+    } else {
+        shuffled = shuffle(getLevelTiles(level));
+        totalTiles = shuffled.length;
+        localStorage.removeItem("savedBoard");
+        localStorage.removeItem("savedMatched");
+    }
 
     shuffled.forEach(symbol => {
+        if (symbol === "matched") return;
         let tile = document.createElement("div");
         tile.classList.add("tile");
         tile.innerText = symbol;
         tile.addEventListener("click", () => handleTileClick(tile));
         board.appendChild(tile);
     });
+
+    saveCurrentBoard();
 }
 
 /* =========================
@@ -128,12 +142,11 @@ function startGame() {
 function handleTileClick(tile) {
     if (gameState!== "playing") return;
     if (tile.classList.contains("matched")) return;
-    if (tile === firstTile) return; // PHASE 7 BUG FIX: Same tile dobara click
+    if (tile === firstTile) return;
 
-    // PHASE 7: CSS class use karo, hardcoded color nahi
     if (!firstTile) {
         firstTile = tile;
-        tile.classList.add("selected"); // CSS se color aye ga
+        tile.classList.add("selected");
         return;
     }
 
@@ -142,7 +155,6 @@ function handleTileClick(tile) {
         tile.classList.add("matched");
         firstTile.classList.remove("selected");
 
-        // PHASE 7: Visibility ki jagah opacity for smooth animation
         setTimeout(() => {
             firstTile.style.opacity = "0";
             tile.style.opacity = "0";
@@ -151,7 +163,6 @@ function handleTileClick(tile) {
         score += 10;
         matchedTiles += 2;
 
-        // PHASE 7: Best Score Update
         if (score > bestScore) {
             bestScore = score;
             localStorage.setItem("bestScore", bestScore);
@@ -163,6 +174,8 @@ function handleTileClick(tile) {
 
         if (matchedTiles === totalTiles) {
             gameState = "win";
+            localStorage.removeItem("savedBoard"); // Level complete = board clear
+            localStorage.removeItem("savedMatched");
             setTimeout(() => {
                 winMessage.style.display = "block";
                 winMessage.innerHTML = `
@@ -174,14 +187,13 @@ function handleTileClick(tile) {
             }, 400);
         }
     } else {
-        // Wrong match
         firstTile.classList.remove("selected");
-        // Thora shake effect
         tile.style.animation = "shake 0.3s";
         setTimeout(() => tile.style.animation = "", 300);
     }
 
     firstTile = null;
+    saveCurrentBoard();
 }
 
 /* =========================
@@ -201,22 +213,24 @@ function nextLevel() {
 
 function restartGame() {
     winMessage.style.display = "none";
+    localStorage.removeItem("savedBoard");
+    localStorage.removeItem("savedMatched");
     startGame();
 }
 
 function resetProgress() {
-    if (!confirm("Sara progress delete ho jaye ga. Pakka?")) return; // PHASE 7: Confirmation
+    if (!confirm("Sara progress delete ho jaye ga. Pakka?")) return;
     localStorage.clear();
     level = 1;
     score = 0;
     bestScore = 0;
-    board.innerHTML = ""; // PHASE 7 BUG FIX
+    board.innerHTML = "";
     winMessage.style.display = "none";
     showMenu();
 }
 
 /* =========================
-   💡 HINT & SHUFFLE - PHASE 7 ADD
+   💡 HINT & SHUFFLE
 ========================= */
 
 function hint() {
@@ -224,7 +238,6 @@ function hint() {
     const tiles = Array.from(board.querySelectorAll('.tile:not(.matched)'));
     if (tiles.length < 2) return;
 
-    // Random match dhoond
     for (let i = 0; i < tiles.length; i++) {
         for (let j = i + 1; j < tiles.length; j++) {
             if (tiles[i].innerText === tiles[j].innerText) {
@@ -252,16 +265,28 @@ function shuffleBoard() {
             tile.style.animation = "fadeIn 0.3s";
         }
     });
+    saveCurrentBoard();
 }
 
 /* =========================
-   🔍 PHASE 7 HELPER
+   💾 BOARD SAVE
+========================= */
+
+function saveCurrentBoard() {
+    const tiles = Array.from(board.children).map(tile => tile.innerText);
+    localStorage.setItem("savedBoard", JSON.stringify(tiles));
+    localStorage.setItem("savedMatched", matchedTiles);
+}
+
+/* =========================
+   🔍 HELPER
 ========================= */
 
 function checkContinueButton() {
     const savedLevel = localStorage.getItem("level");
     const savedScore = localStorage.getItem("score");
-    if (savedLevel && savedScore && (parseInt(savedLevel) > 1 || parseInt(savedScore) > 0)) {
+    const savedBoard = localStorage.getItem("savedBoard");
+    if (savedLevel && savedScore && savedBoard) {
         continueBtn.style.display = "block";
     } else {
         continueBtn.style.display = "none";
@@ -272,7 +297,6 @@ function checkContinueButton() {
    🚀 INIT
 ========================= */
 
-// PHASE 7: Shake animation CSS mein add kar do
 const style = document.createElement('style');
 style.innerHTML = `
 @keyframes shake {

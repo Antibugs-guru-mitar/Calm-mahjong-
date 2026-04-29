@@ -7,7 +7,7 @@ const menuScreen = document.getElementById("menu-screen");
 const gameContainer = document.getElementById("game-container");
 const continueBtn = document.getElementById("continue-btn");
 
-// PHASE 12: DOOR ELEMENTS
+// PHASE 12: DOOR ELEMENTS - FIX
 const doorLeft = document.querySelector('.door-left');
 const doorRight = document.querySelector('.door-right');
 
@@ -28,11 +28,11 @@ let lastMatchTime = 0;
 let timerInterval = null;
 let timeLeft = 60;
 let isDarkMode = localStorage.getItem("darkMode") === "true";
-let maxCombo = parseInt(localStorage.getItem("maxCombo")) || 0; // UPGRADE: STATS
-let totalGames = parseInt(localStorage.getItem("totalGames")) || 0; // UPGRADE: STATS
-let undoStack = []; // UPGRADE: UNDO
-let zenMode = localStorage.getItem("zenMode") === "true"; // UPGRADE: ZEN MODE
-let achievements = JSON.parse(localStorage.getItem("achievements")) || []; // UPGRADE: ACHIEVEMENT
+let maxCombo = parseInt(localStorage.getItem("maxCombo")) || 0;
+let totalGames = parseInt(localStorage.getItem("totalGames")) || 0;
+let undoStack = [];
+let zenMode = localStorage.getItem("zenMode") === "true";
+let achievements = JSON.parse(localStorage.getItem("achievements")) || [];
 
 // 🧩 Base tiles
 const base = ["🍎","🍌","🍇","🍒","🍉","🍍","🥝","🍓","🥭","🍑","🍐","🥥"];
@@ -50,7 +50,7 @@ function shuffle(array) {
 // BUG FIX 2: MAHJONG FEEL - Kam pairs
 function getLevelTiles(level) {
     let tiles = [];
-    let pairs = Math.min(4 + level, 20); // PEHLE 6+level*2 tha
+    let pairs = Math.min(4 + level, 20);
     for (let i = 0; i < pairs; i++) {
         let item = base[i % base.length];
         tiles.push(item, item);
@@ -59,22 +59,48 @@ function getLevelTiles(level) {
 }
 
 /* =========================
-   🧠 SCREEN CONTROL + DOOR
+   🚪 PHASE 12: DOOR FIX
+========================= */
+
+function openDoor(callback) {
+    if (!doorLeft ||!doorRight) return;
+    doorLeft.classList.add('open');
+    doorRight.classList.add('open');
+    setTimeout(() => {
+        doorLeft.style.pointerEvents = 'none';
+        doorRight.style.pointerEvents = 'none';
+        if(callback) callback();
+    }, 800);
+}
+
+function closeDoor() {
+    if (!doorLeft ||!doorRight) return;
+    doorLeft.style.pointerEvents = 'auto';
+    doorRight.style.pointerEvents = 'auto';
+    setTimeout(() => {
+        doorLeft.classList.remove('open');
+        doorRight.classList.remove('open');
+    }, 100);
+}
+
+/* =========================
+   🧠 SCREEN CONTROL - FIXED
 ========================= */
 
 function showGame() {
-    // PHASE 12: DOOR ANIMATION
-    openDoor(() => {
+    closeDoor();
+    setTimeout(() => {
         menuScreen.style.display = "none";
         gameContainer.style.display = "block";
         startParticleTrail();
-        closeDoor();
-    });
+        openDoor();
+    }, 300);
 }
 
 function showMenu() {
     gameState = "menu";
-    openDoor(() => {
+    closeDoor();
+    setTimeout(() => {
         menuScreen.style.display = "flex";
         gameContainer.style.display = "none";
         board.innerHTML = "";
@@ -83,21 +109,7 @@ function showMenu() {
         checkContinueButton();
         checkDailyChallenge();
         checkAchievements();
-        closeDoor();
-    });
-}
-
-// PHASE 12: DOOR ANIMATION
-function openDoor(callback) {
-    doorLeft.classList.add('open');
-    doorRight.classList.add('open');
-    setTimeout(callback, 800);
-}
-
-function closeDoor() {
-    setTimeout(() => {
-        doorLeft.classList.remove('open');
-        doorRight.classList.remove('open');
+        openDoor();
     }, 300);
 }
 
@@ -144,7 +156,7 @@ function showLevelStart() {
 }
 
 /* =========================
-   🎮 START GAME
+   🎮 START GAME - BUG FIX 1
 ========================= */
 
 function startGame(savedBoard = null, savedMatched = 0) {
@@ -183,8 +195,8 @@ function startGame(savedBoard = null, savedMatched = 0) {
 
     // BUG FIX 1: DYNAMIC TIMER + ZEN MODE CHECK
     if (level >= 5 &&!savedBoard &&!zenMode) {
-        timeLeft = 60 + (level - 5) * 10; // Level 5=60s, 6=70s...
-        timeLeft = Math.min(timeLeft, 180); // Max 3 min
+        timeLeft = 60 + (level - 5) * 10;
+        timeLeft = Math.min(timeLeft, 180);
         startTimer();
     }
 
@@ -201,7 +213,6 @@ function handleTileClick(tile) {
     if (tile.classList.contains("matched")) return;
     if (tile === firstTile) return;
 
-    // UPGRADE: HAPTIC FEEDBACK
     if (navigator.vibrate) navigator.vibrate(30);
 
     if (!firstTile) {
@@ -210,7 +221,6 @@ function handleTileClick(tile) {
         return;
     }
 
-    // UPGRADE: UNDO - Save state before match
     saveUndoState();
 
     if (firstTile.innerText === tile.innerText) {
@@ -262,7 +272,7 @@ function handleTileClick(tile) {
                     <h2>🎉 Level ${level} Complete!</h2>
                     <p>Score: ${score}</p>
                     ${combo > 1? `<p>Max Combo: X${maxCombo} 🔥</p>` : ''}
-                    ${!zenMode? `<p>Time: ${60 + (level - 5) * 10 - timeLeft}s</p>` : ''}
+                    ${!zenMode && level >= 5? `<p>Time: ${60 + (level - 5) * 10 - timeLeft}s</p>` : ''}
                     <button class="btn-primary" onclick="nextLevel()">Next Level</button>
                     <button class="btn-ghost" onclick="showMenu()">Main Menu</button>
                 `;
@@ -273,7 +283,7 @@ function handleTileClick(tile) {
         firstTile.classList.remove("selected");
         tile.style.animation = "shake 0.3s";
         setTimeout(() => tile.style.animation = "", 300);
-        undoStack.pop(); // Wrong move, remove from undo
+        undoStack.pop();
     }
 
     firstTile = null;
@@ -281,7 +291,7 @@ function handleTileClick(tile) {
 }
 
 /* =========================
-   ↩️ UPGRADE: UNDO MOVE
+   ↩️ UNDO MOVE
 ========================= */
 
 function saveUndoState() {
@@ -292,7 +302,7 @@ function saveUndoState() {
         matchedTiles: matchedTiles
     };
     undoStack.push(state);
-    if (undoStack.length > 3) undoStack.shift(); // Max 3 undo
+    if (undoStack.length > 3) undoStack.shift();
 }
 
 function undoMove() {
@@ -307,7 +317,6 @@ function undoMove() {
 
     scoreText.innerText = score;
 
-    // Re-add event listeners
     board.querySelectorAll('.tile').forEach(tile => {
         if (!tile.classList.contains('matched')) {
             tile.addEventListener("click", () => handleTileClick(tile));
@@ -624,7 +633,7 @@ function applyTheme() {
 }
 
 /* =========================
-   🧘 UPGRADE: ZEN MODE
+   🧘 ZEN MODE
 ========================= */
 
 function toggleZenMode() {
@@ -634,7 +643,7 @@ function toggleZenMode() {
 }
 
 /* =========================
-   🏆 UPGRADE: ACHIEVEMENTS
+   🏆 ACHIEVEMENTS
 ========================= */
 
 const ACHIEVEMENTS = {
@@ -686,12 +695,10 @@ function showAchievementToast(ach) {
     }, 3000);
 }
 
-function checkAchievements() {
-    // Show achievement count in menu
-}
+function checkAchievements() {}
 
 /* =========================
-   📊 UPGRADE: STATS
+   📊 STATS
 ========================= */
 
 function showStats() {
@@ -761,7 +768,6 @@ document.head.appendChild(style);
 
 applyTheme();
 
-// Add buttons to menu
 const btnContainer = document.createElement('div');
 btnContainer.style.display = 'flex';
 btnContainer.style.gap = '10px';
@@ -805,7 +811,6 @@ setTimeout(() => {
     document.querySelector('.controls')?.appendChild(undoBtn);
 }, 100);
 
-// Show undo button in game
 const originalShowGame = showGame;
 showGame = function() {
     originalShowGame();

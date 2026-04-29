@@ -6,6 +6,8 @@ const bestScoreText = document.getElementById("best-score");
 const menuScreen = document.getElementById("menu-screen");
 const gameContainer = document.getElementById("game-container");
 const continueBtn = document.getElementById("continue-btn");
+
+// PHASE 12: DOOR ELEMENTS - FIX
 const doorLeft = document.querySelector('.door-left');
 const doorRight = document.querySelector('.door-right');
 
@@ -32,6 +34,7 @@ let undoStack = [];
 let zenMode = localStorage.getItem("zenMode") === "true";
 let achievements = JSON.parse(localStorage.getItem("achievements")) || [];
 
+// 🧩 Base tiles
 const base = ["🍎","🍌","🍇","🍒","🍉","🍍","🥝","🍓","🥭","🍑","🍐","🥥"];
 
 // BUG FIX 2: BETTER SHUFFLE
@@ -44,6 +47,7 @@ function shuffle(array) {
     return arr;
 }
 
+// BUG FIX 2: MAHJONG FEEL - Kam pairs
 function getLevelTiles(level) {
     let tiles = [];
     let pairs = Math.min(4 + level, 20);
@@ -55,7 +59,7 @@ function getLevelTiles(level) {
 }
 
 /* =========================
-   🚪 DOOR ANIMATION
+   🚪 PHASE 12: DOOR FIX
 ========================= */
 
 function openDoor(callback) {
@@ -80,7 +84,7 @@ function closeDoor() {
 }
 
 /* =========================
-   🧠 SCREEN CONTROL
+   🧠 SCREEN CONTROL - FIXED
 ========================= */
 
 function showGame() {
@@ -152,7 +156,7 @@ function showLevelStart() {
 }
 
 /* =========================
-   🎮 START GAME
+   🎮 START GAME - BUG FIX 1
 ========================= */
 
 function startGame(savedBoard = null, savedMatched = 0) {
@@ -189,6 +193,7 @@ function startGame(savedBoard = null, savedMatched = 0) {
         board.appendChild(tile);
     });
 
+    // BUG FIX 1: DYNAMIC TIMER + ZEN MODE CHECK
     if (level >= 5 &&!savedBoard &&!zenMode) {
         timeLeft = 60 + (level - 5) * 10;
         timeLeft = Math.min(timeLeft, 180);
@@ -200,7 +205,7 @@ function startGame(savedBoard = null, savedMatched = 0) {
 }
 
 /* =========================
-   🎮 TILE LOGIC
+   🎮 TILE LOGIC + UNDO
 ========================= */
 
 function handleTileClick(tile) {
@@ -231,6 +236,7 @@ function handleTileClick(tile) {
         firstTile.classList.add("matched");
         tile.classList.add("matched");
         firstTile.classList.remove("selected");
+
         score += 10 * comboMultiplier;
         matchedTiles += 2;
 
@@ -266,6 +272,7 @@ function handleTileClick(tile) {
                     <h2>🎉 Level ${level} Complete!</h2>
                     <p>Score: ${score}</p>
                     ${combo > 1? `<p>Max Combo: X${maxCombo} 🔥</p>` : ''}
+                    ${!zenMode && level >= 5? `<p>Time: ${60 + (level - 5) * 10 - timeLeft}s</p>` : ''}
                     <button class="btn-primary" onclick="nextLevel()">Next Level</button>
                     <button class="btn-ghost" onclick="showMenu()">Main Menu</button>
                 `;
@@ -478,7 +485,7 @@ function showComboText(x) {
 }
 
 /* =========================
-   ⏱️ TIMER MODE
+   ⏱️ TIMER MODE - BUG FIX 1
 ========================= */
 
 function startTimer() {
@@ -748,6 +755,10 @@ style.innerHTML = `
 @keyframes particleFade {
   to { opacity: 0; transform: scale(0); }
 }
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
 @keyframes popupIn {
   from { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
   to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
@@ -761,7 +772,6 @@ const btnContainer = document.createElement('div');
 btnContainer.style.display = 'flex';
 btnContainer.style.gap = '10px';
 btnContainer.style.marginTop = '10px';
-btnContainer.style.flexWrap = 'wrap';
 
 const themeBtn = document.createElement('button');
 themeBtn.className = 'btn-ghost';

@@ -4,7 +4,7 @@ const winMessage = document.getElementById("win-message");
 const levelText = document.getElementById("level");
 const achievementBar = document.getElementById("achievement-bar");
 
-// 🎮 GAME STATE (PHASE 7 STEP 2)
+// 🎮 GAME STATE
 let gameState = "menu"; // menu | playing | win
 
 // 💾 SAFE LOAD
@@ -19,7 +19,7 @@ let totalTiles = 0;
 // 🧩 Base tiles
 const base = ["🍎","🍌","🍇","🍒","🍉","🍍","🥝","🍓"];
 
-// Shuffle
+// Shuffle (safe version)
 function shuffle(array) {
     return array.sort(() => Math.random() - 0.5);
 }
@@ -38,11 +38,15 @@ function getLevelTiles(level) {
 }
 
 /* =========================
-   🎮 MENU SYSTEM (NEW)
+   🎮 MENU SYSTEM (FIXED)
 ========================= */
 
 function showMenu() {
     gameState = "menu";
+
+    board.innerHTML = ""; // 🔥 FIX: clear board
+    matchedTiles = 0;
+    firstTile = null;
 
     winMessage.style.display = "block";
     winMessage.innerHTML = `
@@ -55,6 +59,7 @@ function showMenu() {
 }
 
 function continueGame() {
+    winMessage.style.display = "none"; // 🔥 FIX
     startGame();
 }
 
@@ -62,6 +67,9 @@ function continueGame() {
    🎮 LEVEL START
 ========================= */
 function showLevelStart() {
+
+    if (gameState !== "playing") return;
+
     winMessage.style.display = "block";
     winMessage.innerHTML = `
         <h2>🎮 Level ${level}</h2>
@@ -70,15 +78,17 @@ function showLevelStart() {
 
     setTimeout(() => {
         winMessage.style.display = "none";
-    }, 700);
+    }, 600);
 }
 
 /* =========================
-   🎮 START GAME
+   🎮 START GAME (FIXED CORE)
 ========================= */
 function startGame() {
 
     gameState = "playing";
+
+    winMessage.style.display = "none"; // 🔥 FIX OVERLAY BUG
 
     board.innerHTML = "";
 
@@ -91,7 +101,9 @@ function startGame() {
         levelText.innerText = level;
     }
 
-    showLevelStart();
+    setTimeout(() => {
+        showLevelStart();
+    }, 100);
 
     let shuffled = shuffle(getLevelTiles(level));
     totalTiles = shuffled.length;
@@ -111,7 +123,7 @@ function startGame() {
 }
 
 /* =========================
-   🎮 TILE LOGIC
+   🎮 TILE LOGIC (SAFE)
 ========================= */
 function handleTileClick(tile) {
 
@@ -136,10 +148,8 @@ function handleTileClick(tile) {
         matchedTiles += 2;
 
         localStorage.setItem("score", score);
-
         scoreText.innerText = score;
 
-        // WIN
         if (matchedTiles === totalTiles) {
 
             gameState = "win";

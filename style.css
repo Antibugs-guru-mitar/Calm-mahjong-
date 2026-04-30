@@ -1,7 +1,6 @@
 /* ===== VITA SNOW RIDER - BULLETPROOF CSS ===== */
 /* THE BALOCH EDITION - 0 LAG, 0 DARD, 60 FPS GUARANTEE */
 
-/* GLOBAL RESET - Bulletproof */
 * {
     margin: 0;
     padding: 0;
@@ -27,13 +26,13 @@ html, body {
 #game {
     width: 100vw;
     height: 100vh;
-    height: 100dvh; /* Mobile browser fix */
+    height: 100dvh;
     position: relative;
     background: linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
     overflow: hidden;
 }
 
-/* ===== RAASTA 2: BACKGROUND - PARALLAX BULLETPROOF ===== */
+/* ===== BACKGROUND - PARALLAX ===== */
 .mountain {
     position: absolute;
     bottom: 0;
@@ -41,7 +40,7 @@ html, body {
     height: 60%;
     background: linear-gradient(180deg, transparent 0%, #0a0e1a 100%);
     will-change: transform;
-    transform: translateZ(0); /* GPU Acceleration */
+    transform: translateZ(0);
     backface-visibility: hidden;
 }
 
@@ -63,23 +62,14 @@ html, body {
     clip-path: polygon(0% 100%, 15% 70%, 25% 85%, 35% 50%, 50% 75%, 65% 40%, 75% 65%, 85% 30%, 100% 55%, 100% 100%);
 }
 
-#mtn1 { 
-    animation: slide 20s linear infinite; 
-    z-index: 2;
-}
-#mtn2 { 
-    animation: slide 35s linear infinite; 
-    opacity: 0.5; 
-    height: 45%; 
-    z-index: 1;
-}
+#mtn1 { animation: slide 20s linear infinite; z-index: 2; }
+#mtn2 { animation: slide 35s linear infinite; opacity: 0.5; height: 45%; z-index: 1; }
 
 @keyframes slide {
     from { transform: translate3d(0, 0, 0); }
     to { transform: translate3d(-50%, 0, 0); }
 }
 
-/* BARAF - Optimized */
 .snow {
     position: absolute;
     width: 3px;
@@ -93,13 +83,10 @@ html, body {
 }
 
 @keyframes snowfall {
-    to { 
-        transform: translateY(100vh) translateX(-100px);
-        opacity: 0;
-    }
+    to { transform: translateY(100vh) translateX(-100px); opacity: 0; }
 }
 
-/* ===== RAASTA 3: CHARACTER - IGRIS NINJA BULLETPROOF ===== */
+/* ===== CHARACTER - IGRIS NINJA ===== */
 #player {
     position: absolute;
     width: 50px;
@@ -133,7 +120,6 @@ html, body {
     bottom: 45px;
 }
 
-/* RED PATTI IGRIS STYLE - Bulletproof Animation */
 .ninja-ribbon {
     width: 4px;
     height: 60px;
@@ -163,7 +149,6 @@ html, body {
     box-shadow: 0 0 15px #00f5ff;
 }
 
-/* JUMP ANIMATION - Bulletproof */
 .jumping .ninja-ribbon {
     animation: ribbonJump 0.5s ease-out;
 }
@@ -173,7 +158,6 @@ html, body {
     50% { height: 80px; transform: rotate(-30deg); }
 }
 
-/* GROUND */
 #ground {
     position: absolute;
     bottom: 0;
@@ -184,7 +168,7 @@ html, body {
     box-shadow: 0 -5px 20px rgba(255,255,255,0.1);
 }
 
-/* ===== RAASTA 1: GAME UI BULLETPROOF ===== */
+/* ===== GAME UI ===== */
 #score {
     position: absolute;
     top: 20px;
@@ -269,7 +253,6 @@ html, body {
     #score { font-size: 28px; }
 }
 
-/* REDUCE MOTION FOR ACCESSIBILITY */
 @media (prefers-reduced-motion: reduce) {
     .mountain, .snow, .ninja-ribbon { animation: none; }
 }

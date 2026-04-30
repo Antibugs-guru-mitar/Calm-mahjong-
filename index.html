@@ -2,81 +2,208 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#0a0e1a">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="mobile-web-app-capable" content="yes">
-    <title>Vita Killer Pro Max Ultimate</title>
-    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Vita Snow Rider</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
+        body { background: #0a0e1a; overflow: hidden; font-family: 'Arial', sans-serif; }
+        #game {
+            width: 100vw; height: 100vh; position: relative;
+            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        }
+        
+        /* RAASTA 2: BACKGROUND - PARALLAX PAHAR */
+        .mountain {
+            position: absolute; bottom: 0; width: 200%; height: 60%;
+            background: linear-gradient(180deg, transparent 0%, #0a0e1a 100%);
+        }
+        .mountain::before, .mountain::after {
+            content: ''; position: absolute; bottom: 0; width: 100%; height: 100%;
+            background: #16213e;
+            clip-path: polygon(0% 100%, 10% 60%, 20% 80%, 30% 40%, 40% 70%, 50% 30%, 60% 60%, 70% 20%, 80% 50%, 90% 35%, 100% 65%, 100% 100%);
+        }
+        .mountain::after {
+            background: #0f3460; height: 70%; opacity: 0.7;
+            clip-path: polygon(0% 100%, 15% 70%, 25% 85%, 35% 50%, 50% 75%, 65% 40%, 75% 65%, 85% 30%, 100% 55%, 100% 100%);
+        }
+        #mtn1 { animation: slide 20s linear infinite; }
+        #mtn2 { animation: slide 35s linear infinite; opacity: 0.5; height: 45%; }
+        @keyframes slide { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+        
+        /* BARAF */
+        .snow {
+            position: absolute; width: 3px; height: 3px; background: #fff; border-radius: 50%;
+            animation: snowfall linear infinite;
+        }
+        @keyframes snowfall {
+            to { transform: translateY(100vh) translateX(-100px); opacity: 0; }
+        }
+        
+        /* RAASTA 3: CHARACTER - IGRIS NINJA */
+        #player {
+            position: absolute; width: 50px; height: 50px; left: 80px; bottom: 120px;
+            z-index: 10; transition: transform 0.1s;
+        }
+        .ninja-body {
+            width: 30px; height: 40px; background: #000; border-radius: 15px 15px 5px 5px;
+            position: absolute; left: 10px; bottom: 10px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.8);
+        }
+        .ninja-head {
+            width: 20px; height: 20px; background: #000; border-radius: 50%;
+            position: absolute; left: 15px; bottom: 45px;
+        }
+        /* RED PATTI IGRIS STYLE */
+        .ninja-ribbon {
+            width: 4px; height: 60px; background: linear-gradient(180deg, #ff0033 0%, #990000 100%);
+            position: absolute; left: 8px; bottom: 35px; transform-origin: top;
+            animation: ribbon 0.8s ease-in-out infinite alternate;
+            box-shadow: 0 0 10px #ff0033;
+        }
+        @keyframes ribbon { from { transform: rotate(-15deg); } to { transform: rotate(15deg); } }
+        .snowboard {
+            width: 60px; height: 8px; background: linear-gradient(90deg, #00f5ff 0%, #0088ff 100%);
+            position: absolute; left: -5px; bottom: 0; border-radius: 4px;
+            box-shadow: 0 0 15px #00f5ff;
+        }
+        /* JUMP ANIMATION */
+        .jumping .ninja-ribbon { animation: ribbonJump 0.5s; }
+        @keyframes ribbonJump { 0%,100%{height:60px;} 50%{height:80px; transform:rotate(-30deg);} }
+        
+        /* GROUND */
+        #ground {
+            position: absolute; bottom: 0; width: 100%; height: 120px;
+            background: linear-gradient(180deg, #e8f4f8 0%, #d0e8f0 100%);
+            z-index: 5;
+        }
+        
+        /* RAASTA 1: GAME UI */
+        #score {
+            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
+            color: #fff; font-size: 32px; font-weight: bold; text-shadow: 0 0 10px #00f5ff;
+            z-index: 20;
+        }
+        #gameOver {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.9); color: #fff; padding: 30px; border-radius: 20px;
+            text-align: center; display: none; z-index: 30; border: 2px solid #00f5ff;
+        }
+        #gameOver h2 { color: #ff3366; margin-bottom: 15px; }
+        #gameOver button {
+            background: #00f5ff; color: #000; border: none; padding: 15px 30px;
+            border-radius: 10px; font-size: 18px; font-weight: bold; margin-top: 15px;
+        }
+        #tap { 
+            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+            color: rgba(255,255,255,0.5); font-size: 14px; z-index: 20;
+            animation: blink 1.5s infinite;
+        }
+        @keyframes blink { 0%,100%{opacity:0.3;} 50%{opacity:1;} }
+    </style>
 </head>
 <body>
-    <!-- ========== 3D DOORS - JS SE CONTROL ========== -->
-    <div class="door-left"></div>
-    <div class="door-right"></div>
-
-    <!-- ========== MENU SCREEN ========== -->
-    <div id="menu-screen">
-        <h1 class="menu-title">VITA KILLER<br>PRO MAX ULTIMATE</h1>
-        <div class="menu-buttons">
-            <button class="btn-primary" onclick="newGame()">NEW GAME</button>
-            <button class="btn-primary" id="continue-btn" onclick="continueGame()" style="display: none;">CONTINUE</button>
-            <button class="btn-ghost" onclick="resetProgress()">RESET PROGRESS</button>
-        </div>
-        <p style="margin-top: 2rem; color: var(--text-secondary); font-size: 0.9rem; text-align: center;">
-            Swipe to Crush 3+ Balls | Score Target to Win<br>20 Min Deadline Per Level
-        </p>
-    </div>
-
-    <!-- ========== GAME CONTAINER ========== -->
-    <div id="game-container">
+    <div id="game">
+        <!-- RAASTA 2: BACKGROUND -->
+        <div class="mountain" id="mtn2"></div>
+        <div class="mountain" id="mtn1"></div>
         
-        <!-- ===== GAME HEADER ===== -->
-        <header class="game-header">
-            <div class="header-left">
-                <div class="stat-box">
-                    <span class="stat-label">LEVEL</span>
-                    <span class="stat-value" id="level">1</span>
-                </div>
-                <div class="stat-box">
-                    <span class="stat-label">SCORE</span>
-                    <span class="stat-value" id="score">0</span>
-                </div>
-                <div class="stat-box">
-                    <span class="stat-label">TARGET</span>
-                    <span class="stat-value" id="target-score">3000</span>
-                </div>
-            </div>
-
-            <div class="header-center">
-                <div id="timer-display">⏱️ 20:00</div>
-            </div>
-
-            <div class="header-right">
-                <div class="stat-box">
-                    <span class="stat-label">BEST</span>
-                    <span class="stat-value" id="best-score">0</span>
-                </div>
-            </div>
-        </header>
-
-        <!-- ===== GAME BOARD - 10x8 3D BALLS ===== -->
-        <main id="game-board"></main>
-
-        <!-- ===== GAME FOOTER ===== -->
-        <footer class="game-footer">
-            <button class="footer-btn" onclick="hint()">💡 HINT</button>
-            <button class="footer-btn" onclick="shuffleBoard()">🔄 SHUFFLE</button>
-            <button class="footer-btn" onclick="restartGame()">🔃 RESTART</button>
-            <button class="footer-btn" onclick="showMenu()">🏠 MENU</button>
-        </footer>
-
+        <!-- RAASTA 3: CHARACTER -->
+        <div id="player">
+            <div class="ninja-ribbon"></div>
+            <div class="ninja-head"></div>
+            <div class="ninja-body"></div>
+            <div class="snowboard"></div>
+        </div>
+        
+        <div id="ground"></div>
+        
+        <!-- RAASTA 1: UI -->
+        <div id="score">0M</div>
+        <div id="tap">TAP TO JUMP</div>
+        <div id="gameOver">
+            <h2>GAME OVER</h2>
+            <p>Distance: <span id="finalScore">0</span>M</p>
+            <button onclick="location.reload()">PLAY AGAIN</button>
+        </div>
     </div>
 
-    <!-- ========== WIN/LOSE POPUP ========== -->
-    <div id="win-message"></div>
+<script>
+// RAASTA 1: GAME CODE + PHYSICS
+const player = document.getElementById('player');
+const game = document.getElementById('game');
+const scoreEl = document.getElementById('score');
+const gameOverEl = document.getElementById('gameOver');
+const finalScoreEl = document.getElementById('finalScore');
 
-    <!-- ========== JS LOAD - LAST MEIN ========== -->
-    <script src="script.js"></script>
+let gameState = {
+    y: 120, vy: 0, gravity: 0.8, jumpPower: -16,
+    isGrounded: true, score: 0, gameOver: false,
+    groundHeight: 120, speed: 4
+};
+
+// RAASTA 2: BARAF GENERATOR
+function createSnow() {
+    if (gameState.gameOver) return;
+    const snow = document.createElement('div');
+    snow.className = 'snow';
+    snow.style.left = Math.random() * 100 + 'vw';
+    snow.style.animationDuration = (Math.random() * 3 + 2) + 's';
+    snow.style.opacity = Math.random();
+    game.appendChild(snow);
+    setTimeout(() => snow.remove(), 5000);
+}
+setInterval(createSnow, 100);
+
+// JUMP FUNCTION
+function jump() {
+    if (gameState.gameOver) return;
+    if (gameState.isGrounded) {
+        gameState.vy = gameState.jumpPower;
+        gameState.isGrounded = false;
+        player.classList.add('jumping');
+        setTimeout(() => player.classList.remove('jumping'), 500);
+        document.getElementById('tap').style.display = 'none';
+    }
+}
+
+// CONTROLS
+game.addEventListener('click', jump);
+game.addEventListener('touchstart', e => { e.preventDefault(); jump(); });
+document.addEventListener('keydown', e => { if(e.code === 'Space') jump(); });
+
+// GAME LOOP
+function update() {
+    if (gameState.gameOver) return;
+    
+    // Physics
+    gameState.vy += gameState.gravity;
+    gameState.y += gameState.vy;
+    
+    // Ground collision
+    if (gameState.y >= window.innerHeight - gameState.groundHeight - 50) {
+        gameState.y = window.innerHeight - gameState.groundHeight - 50;
+        gameState.vy = 0;
+        gameState.isGrounded = true;
+    }
+    
+    player.style.bottom = (window.innerHeight - gameState.y - 50) + 'px';
+    
+    // Score
+    gameState.score += gameState.speed / 10;
+    scoreEl.textContent = Math.floor(gameState.score) + 'M';
+    
+    // Speed increase
+    gameState.speed += 0.001;
+    
+    requestAnimationFrame(update);
+}
+
+// START GAME
+update();
+
+// GAME OVER - Collision with ground holes later, abhi sirf infinite chalega
+// Future: add obstacles here
+
+</script>
 </body>
 </html>
